@@ -3,15 +3,21 @@ name: go-home
 ---
 # System Back until the home screen: Household Overview -> Search
 # Beneficiary -> Select Your Village -> home. Checked before every press,
-# so it never presses Back on home (that would leave the app).
+# so it never presses Back on home (that would leave the app). After each
+# Back it waits up to 6 s for home: with two emulators on a busy PC, home
+# came up after a 2 s settle wait, the next Back closed the app (X9,
+# 2026-11-03 12:20).
 - repeat:
     times: 6
     while:
       notVisible: "Registration & Delivery"
     commands:
       - back
-      - waitForAnimationToEnd:
-          timeout: 2000
+      - extendedWaitUntil:
+          visible: "Registration & Delivery"
+          timeout: 6000
+          optional: true
+          label: "Home, or the screen under this one"
 - assertVisible:
     text: "Registration & Delivery"
     label: "On the home screen"

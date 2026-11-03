@@ -7,9 +7,13 @@ name: connection-dialog
 # (title CORE_COMMON_CONNECTION_LABEL, text CORE_COMMON_CONNECTION_CONTENT,
 # button Core_common_ok; artifacts/findings/). P4 failed at 15:05 when
 # Registration & Delivery was tapped just as airplane mode came on.
+#
+# On 2026-11-03 12:35 (D5, emulator-5554, airplane mode on, Registration &
+# Delivery tapped) the same dialog came with its texts translated: "Connection
+# Alert", "No internet. Please connect to internet.", Ok.
 - runFlow:
     when:
-      visible: "CORE_COMMON_CONNECTION_LABEL|CORE_COMMON_CONNECTION_CONTENT"
+      visible: "CORE_COMMON_CONNECTION_LABEL|CORE_COMMON_CONNECTION_CONTENT|Connection Alert|No internet.*"
     commands:
       - tapOn:
           text: "Core_common_ok|OK|Ok"

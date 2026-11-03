@@ -1,0 +1,29 @@
+appId: ${HCM_APP_ID}
+name: D5 part 3 - compare A and B; device 1 back online, Sync Data
+tags:
+  - phase-a
+---
+# D5 part 3 (see 1-start.yaml), device 1, from the home screen, while device
+# 2 syncs B: A and B compared (the IDs each device saved offline), then
+# airplane mode off and Sync Data. Ends on the home screen with A synced.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 2 left device 1 on the home screen"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${String(D5_ID_A) != String(D5_ID_B) && String(D5_ID_A).length == 12 && !/\D/.test(D5_ID_A) && String(D5_ID_B).length == 12 && !/\D/.test(D5_ID_B)}
+      TEXT: "${String(D5_ID_A) == String(D5_ID_B) ? 'A and B got the SAME ID ' + D5_ID_A + ' on two devices of one CDD, both offline - the phone-side fix cannot see the other device; only the server setting (Phase C) can stop it' : 'A and B, registered at the same time offline on two devices of one CDD, have different IDs - A ' + D5_ID_A + ', B ' + D5_ID_B}"
+- setAirplaneMode: disabled
+- extendedWaitUntil:
+    visible: "Never shown - a pause while the network comes back"
+    timeout: 8000
+    optional: true
+- runFlow: ../../subflows/common/sync-data.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: note
+      TEXT: "Device 1 synced A"

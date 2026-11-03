@@ -12,6 +12,11 @@
     first part launches it - and each part's "VAR|NAME|VALUE" lines are
     passed to the parts after it as -e NAME=VALUE.
 
+    Parts that share a stage number ("2-register-a.yaml" and
+    "2-register-b@2.yaml") run at the same time, one per device: the two
+    emulators of X9 and D5 do each step together, signed in as the same CDD.
+    The next stage starts when both are done.
+
     The phone's log is recorded
     for the whole run (the plan's "adb logcat -c" before, "logcat -d" after)
     into <run>\<case>.log; its UPDATE_IDENTIFIER_STATUS lines go to
@@ -112,34 +117,83 @@ function Test-PartLost([string] $dir) {
            ($text -notmatch 'onCommandFinished: .* FAILED')
 }
 
+function Get-PartDevice($part) { if ($part.BaseName -match '@2$') { $Device2 } else { $Device } }
+
+# A part of a stage with two parts runs in its own PowerShell, so both
+# devices' Maestro runs go at once (tested 2026-11-03: two Maestro 2.10 runs,
+# one per emulator, do not get in each other's way). Its output goes to
+# <part>\console.log, shown here line by line with the device in front.
+function Start-PartProcess($part, [string] $device, [string] $partDir, [string[]] $set) {
+    New-Item -ItemType Directory -Force $partDir | Out-Null
+    $q = { param($s) "'" + ($s -replace "'", "''") + "'" }
+    $cmd = '& {0} -Flow {1} -Device {2} -RunDir {3} -Set @({4}); exit $LASTEXITCODE' -f (& $q (Join-Path $PSScriptRoot 'run.ps1')),
+        (& $q $part.FullName), (& $q $device), (& $q $partDir), (($set | ForEach-Object { & $q $_ }) -join ',')
+    $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($cmd))
+    $p = Start-Process -FilePath 'powershell.exe' -NoNewWindow -PassThru `
+        -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $encoded `
+        -RedirectStandardOutput (Join-Path $partDir 'console.log') -RedirectStandardError (Join-Path $partDir 'console-err.log')
+    $null = $p.Handle  # Windows PowerShell reads ExitCode only once the handle was taken
+    [pscustomobject]@{ Process = $p; Device = $device; Out = (Join-Path $partDir 'console.log'); Shown = 0 }
+}
+
+function Show-PartOutput($runs) {
+    foreach ($r in $runs) {
+        $lines = @(Get-Content $r.Out -ErrorAction SilentlyContinue)
+        for (; $r.Shown -lt $lines.Count; $r.Shown++) { Write-Host "[$($r.Device)] $($lines[$r.Shown])" }
+    }
+}
+
+$stages = @($parts | Group-Object { if ($_.BaseName -match '^(\d+)-') { $Matches[1] } else { $_.BaseName } })
 try {
-    foreach ($part in $parts) {
+    foreach ($stage in $stages) {
         $set = @($vars.GetEnumerator() | ForEach-Object { '{0}={1}' -f $_.Key, $_.Value })
-        $partDir = Join-Path $runDir $part.BaseName
-        if ($Resume -and $part.BaseName -lt $From) {
-            # Already run: only its VARs are needed.
-            foreach ($hit in Get-ChildItem $partDir -Recurse -Filter maestro.log -ErrorAction SilentlyContinue | Select-String -Pattern 'JsConsole: VAR\|([^|]+)\|(.*)$') {
+        $todo = @()
+        foreach ($part in $stage.Group) {
+            $partDir = Join-Path $runDir $part.BaseName
+            # Already run (-Resume): only its VARs are needed.
+            if ($Resume -and $part.BaseName -lt $From) { continue }
+            if ($Resume -and (Test-Path $partDir)) {
+                # The stopped run's attempt at this part: kept like a lost attempt.
+                Rename-Item $partDir ('{0}.lost-resume-{1}' -f $part.BaseName, (Get-Date -Format 'HHmmss'))
+            }
+            $todo += $part
+        }
+        for ($attempt = 1; $todo; $attempt++) {
+            foreach ($part in $todo) {
+                Write-Host "Part $($part.BaseName) on $(Get-PartDevice $part)$(if ($attempt -gt 1) { " (attempt $attempt)" })$(if ($set) { ' with ' + ($set -join ', ') })"
+            }
+            $codes = @{}
+            if ($todo.Count -eq 1) {
+                $part = $todo[0]
+                & (Join-Path $PSScriptRoot 'run.ps1') -Flow $part.FullName -Device (Get-PartDevice $part) -RunDir (Join-Path $runDir $part.BaseName) -Set ($set + "DEVICE_ID=$(Get-PartDevice $part)")
+                $codes[$part.BaseName] = $LASTEXITCODE
+            } else {
+                Write-Host "Parts $(($todo | ForEach-Object BaseName) -join ' and ') at the same time"
+                $runs = @(foreach ($part in $todo) {
+                    Start-PartProcess $part (Get-PartDevice $part) (Join-Path $runDir $part.BaseName) ($set + "DEVICE_ID=$(Get-PartDevice $part)")
+                })
+                while ($runs | Where-Object { -not $_.Process.HasExited }) { Show-PartOutput $runs; Start-Sleep -Seconds 3 }
+                Show-PartOutput $runs
+                for ($i = 0; $i -lt $todo.Count; $i++) { $codes[$todo[$i].BaseName] = $runs[$i].Process.ExitCode }
+            }
+            $retry = @()
+            foreach ($part in $todo) {
+                $partDir = Join-Path $runDir $part.BaseName
+                $c = $codes[$part.BaseName]
+                if ($c -ne 0 -and $attempt -lt 3 -and (Test-PartLost $partDir)) {
+                    Write-Host "Maestro lost the device during part $($part.BaseName) - running it again."
+                    Rename-Item $partDir ('{0}.lost-{1}' -f $part.BaseName, $attempt)
+                    adb -s (Get-PartDevice $part) wait-for-device | Out-Null
+                    $retry += $part
+                } elseif ($c -ne 0 -and $code -eq 0) { $code = $c }
+            }
+            if ($retry) { Start-Sleep -Seconds 5 }
+            $todo = $retry
+        }
+        foreach ($part in $stage.Group) {
+            foreach ($hit in Get-ChildItem (Join-Path $runDir $part.BaseName) -Recurse -Filter maestro.log -ErrorAction SilentlyContinue | Select-String -Pattern 'JsConsole: VAR\|([^|]+)\|(.*)$') {
                 $vars[$hit.Matches[0].Groups[1].Value] = $hit.Matches[0].Groups[2].Value.Trim()
             }
-            continue
-        }
-        if ($Resume -and (Test-Path $partDir)) {
-            # The stopped run's attempt at this part: kept like a lost attempt.
-            Rename-Item $partDir ('{0}.lost-resume-{1}' -f $part.BaseName, (Get-Date -Format 'HHmmss'))
-        }
-        $partDevice = if ($part.BaseName -match '@2$') { $Device2 } else { $Device }
-        for ($attempt = 1; ; $attempt++) {
-            Write-Host "Part $($part.BaseName) on $partDevice$(if ($attempt -gt 1) { " (attempt $attempt)" })$(if ($set) { ' with ' + ($set -join ', ') })"
-            & (Join-Path $PSScriptRoot 'run.ps1') -Flow $part.FullName -Device $partDevice -RunDir $partDir -Set ($set + "DEVICE_ID=$partDevice")
-            $code = $LASTEXITCODE
-            if ($code -eq 0 -or $attempt -ge 3 -or -not (Test-PartLost $partDir)) { break }
-            Write-Host "Maestro lost the device during part $($part.BaseName) - running it again."
-            Rename-Item $partDir ('{0}.lost-{1}' -f $part.BaseName, $attempt)
-            adb -s $partDevice wait-for-device | Out-Null
-            Start-Sleep -Seconds 5
-        }
-        foreach ($hit in Get-ChildItem $partDir -Recurse -Filter maestro.log | Select-String -Pattern 'JsConsole: VAR\|([^|]+)\|(.*)$') {
-            $vars[$hit.Matches[0].Groups[1].Value] = $hit.Matches[0].Groups[2].Value.Trim()
         }
         if ($code -ne 0) { break }
     }

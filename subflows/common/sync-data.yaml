@@ -39,4 +39,20 @@ name: sync-data
 - assertNotVisible:
     text: "Data Unsynced"
     label: "Nothing is left to sync"
+# "Data Synced Successfully" (Close) can come well after the card is gone:
+# with two emulators on a busy PC it came up about a minute later, over the
+# home screen the next part waited for (X9, 2026-11-03 12:18).
+- extendedWaitUntil:
+    visible: "Data Synced Successfully"
+    timeout: 15000
+    optional: true
+    label: "A late sync result"
+- runFlow:
+    when:
+      visible: "Data Synced Successfully"
+    commands:
+      - tapOn:
+          text: "Close"
+          below: "Data Synced Successfully"
+          label: "Close the late sync result"
 - takeScreenshot: artifacts/synced

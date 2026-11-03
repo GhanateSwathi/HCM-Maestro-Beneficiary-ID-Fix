@@ -6,6 +6,20 @@ name: sign-in-cdd
 # login and Allow Permissions.
 - runFlow: launch-app.yaml
 
+# An app already signed in can show its login screen for a moment on the way
+# to boundary selection or home: on a busy PC the login below then began on
+# a screen that had moved on (D5, emulator-5556, 2026-11-03 12:26). A login
+# screen that is still there after 8 s is a real one.
+- runFlow:
+    when:
+      visible: "User ID.*"
+    commands:
+      - extendedWaitUntil:
+          visible: ".*Health Facility.*|Registration & Delivery|Beneficiary IDs|Allow Permissions"
+          timeout: 8000
+          optional: true
+          label: "A signed-in app passes its login screen"
+
 # login.yaml signs in whoever it is handed. Its LOGIN_* names are kept out of
 # .env: the runner forwards every .env key as -e, which would replace these.
 - runFlow:

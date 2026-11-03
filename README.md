@@ -7,21 +7,27 @@ Maestro (Android) automation for the **Beneficiary ID Fix – QA Test Plan** (20
 | App | `org.egov.azm.gombe` 2.2.120 (label ADAMAWA-AZM) - the Kaduna fix build |
 | Device | From 2026-11-02: emulator `HCM_Beneficiary_ID` (Pixel 9 Pro XL, Android 16, 12 GB data), `emulator-5554` - see [The emulator](#the-emulator). Before: vivo V2059 phone, Android 13, serial `1361446350000MX` |
 | User | One CDD (`HCM_CDD_USER_ID` in `.env`) |
-| Cases | [TEST-CASES.md](TEST-CASES.md) - the 18 Phase A cases run, with result, comments and the ID ledger |
+| Cases | [TEST-CASES.md](TEST-CASES.md) - the 19 Phase A cases run, with result, comments and the ID ledger |
 
-## Where we left off (2026-11-02)
+## Where we left off (2026-11-03)
 
-**Next session - start here: the two-device cases X9 and D5**, on two identical emulators (same AVD settings, build, CDD and boundary). Everything is written; nothing has run yet.
+**Phase A is done: 17 PASS, 2 FAIL (X9, D5).** The two-device cases ran on 2026-11-03 on both emulators at once - in lockstep, every step on both devices together, signed in as the same CDD (QA's decision; see [Running](#running)) - and **both gave one ID to two people**:
 
-1. Close heavy apps first: two emulators need about 6 GB of free RAM (9.4 GB was free once Chrome and Slack were closed).
-2. `.\scripts\start-emulator.ps1` (HCM_Beneficiary_ID → `emulator-5554`), then `.\scripts\start-emulator.ps1 -Avd HCM_Beneficiary_ID_2 -Port 5556` (→ `emulator-5556`). The second one's very first boot is slow - it had not finished within 10 minutes on 2026-11-02 19:28; give it time. The script installs the app (`HCM_APK` in `.env`) when it is missing.
-3. `.\scripts\run-case.ps1 -Case X9`, then `.\scripts\run-case.ps1 -Case D5`. Parts named `…@2.yaml` run on `DEVICE_ID_2`; ledger rows name the device.
-4. D5 syncs both devices at the end, as the plan says (decided 2026-11-02): if A and B get the same ID, that duplicate goes to the server and the case FAILs - the cross-device gap only the server setting can close.
-5. Afterwards: add X9 and D5 to the shared report (Claude doc "Beneficiary ID Fix – QA Test Report (Phase A)") and to this section.
+- **X9** (online): A on `emulator-5554` and B on `emulator-5556`, registered at the same moment, both got **121517171780** - the app's log at Submit, the card and the ledger agree on both devices. Both synced; the server accepted both (Data Synced Successfully). Search by ID on each device finds only its own household.
+- **D5** (offline): in the run itself A ≠ B (121030208213, 121751162220), but A's **121030208213** had already gone to QAID-D5-B on `emulator-5556` in an attempt stopped at 12:32 (synced with the rest at 12:52) - device 1 handed out an ID device 2 had used, because each device skips only the IDs it used itself.
+- Why the two devices hold one pool: the app reports `deviceUuid` as the Android build ID, the same on both emulators (question 6), and both re-fetched the same 600 IDs. Whether phones with different build IDs get different pools is not tested.
+
+**Next session - start here:**
+
+1. Send questions 6 and 7 (below) to the dev with the X9 / D5 evidence (`artifacts/runs/20261103-120944-X9`, `…-123825-D5`).
+2. Add X9, D5 and P6 (out of scope) to the shared report (Claude doc "Beneficiary ID Fix – QA Test Report (Phase A)") - not done yet.
+3. Optional, for the dev's answer to question 6: X9 with the vivo phone as device 2 (a different build ID), to see whether a different `deviceUuid` gets a different pool.
+
+To run the two-device cases again: close Chrome and Slack (two emulators take about 7 GB), `.\scripts\start-emulator.ps1`, then `.\scripts\start-emulator.ps1 -Avd HCM_Beneficiary_ID_2 -Port 5556`, then `.\scripts\run-case.ps1 -Case X9` (or D5). D5's start parts do not download IDs (Download Beneficiary IDs was greyed out - question 7); put `DOWNLOAD: "yes"` back once it answers again.
 
 No server checks (Postman) - decided 2026-11-02. D12 (two CDDs) and S3 (server setting) stay out.
 
-**Phase A is done** for every case one device can run: **17 PASS, 1 BLOCKED (P6)**. P1 ran on the phone on 2026-10-30; the other 17 ran on the emulator on 2026-11-02. The ledger holds 60 IDs (fixtures included) with **no duplicate** - no beneficiary-ID bug found. Results per case, with evidence, are in [TEST-CASES.md](TEST-CASES.md) and `artifacts/report/`.
+**The one-device cases** (2026-10-30 to 11-02): **17 PASS**. P1 ran on the phone on 2026-10-30; the other 16 ran on the emulator on 2026-11-02. P6 is out of scope from 2026-11-03 (see its row). The ledger holds 60 IDs (fixtures included) with **no duplicate** - no beneficiary-ID bug found. Results per case, with evidence, are in [TEST-CASES.md](TEST-CASES.md) and `artifacts/report/`.
 
 | Case | Result | What it showed |
 | --- | --- | --- |
@@ -36,11 +42,13 @@ No server checks (Postman) - decided 2026-11-02. D12 (two CDDs) and S3 (server s
 | X8 | PASS | After sync + clear data + Re-Fetch: 546 of 600 - the 54 synced IDs left out; B got a new one |
 | D6 | PASS | Logging out and back in keeps used IDs used (592 → 592) |
 | D11 | PASS | Killed right after Submit, 3 rounds: A always saved with an ID and N 1 lower; B never A's ID |
-| P6 | **BLOCKED** | With 0 IDs the popup offers **only Download, no Skip** - the new config's behaviour. The UUID ("No Beneficiary ID") people P6 makes could not be made (question 4) |
+| X9 | **FAIL** | Two emulators, one CDD, online, A and B registered at the same moment: **both got 121517171780**; both synced |
+| D5 | **FAIL** | Two emulators, one CDD, offline: A got **121030208213**, already given to QAID-D5-B on the other emulator; both synced |
+| P6 | Out of scope | With 0 IDs the popup offers **only Download, no Skip** - Skip was removed on purpose (2026-11-03), so the case's precondition no longer exists. Its run (2026-11-02 18:44, then BLOCKED) is left out of the tracker; `cases/P6/` is kept for reference |
 
 Two earlier runs were our automation's fault and are marked SUPERSEDED in `artifacts/results.csv`: P5 13:17 (`read-card.yaml` read the head's ID for every member - ledger rows corrected to the IDs on screen) and D1 13:39 (a check ran before E's ID reached it). Both were re-run and passed.
 
-**Scope:** the 18 cases above are the plan's Phase A cases that one device can run; the plan's other 28 cases (Phase B and C, dev setup, two devices or users, manual) are out of this round and were removed from the tracker and `scripts/cases.csv` - they are still in the QA plan. P1b's way 4 (a dose) was not run: it needs stock (a "Stock Issued" notification of 2 AZM arrived at about 12:00).
+**Scope:** the 17 PASS cases above are the plan's Phase A cases that one device can run; the plan's other 28 cases (Phase B and C, dev setup, two devices or users, manual), and P6 from 2026-11-03, are out of this round and were removed from the tracker and `scripts/cases.csv` - they are still in the QA plan. P1b's way 4 (a dose) was not run: it needs stock (a "Stock Issued" notification of 2 AZM arrived at about 12:00).
 
 **Later:** the same cases driven through android-mcp-bridge (`Downloads\android-mcp-bridge`), to compare with Maestro.
 
@@ -52,15 +60,17 @@ Two earlier runs were our automation's fault and are marked SUPERSEDED in `artif
 
 ### On UAT / on the devices
 
-All test households are in Rigan Ori under `dis-qa-oct29`, named `QAID-<case>-<letter>`, listed in `artifacts/ledger.csv`, and synced. The emulator was last left after P6: app data cleared, signed in, **0 IDs**, no UUID people. Its fixtures (QAID-FIX-E1, E2) are on the server but no longer on the emulator - after a clear, the boundary step answers "Data found!" with Go To Home Screen, so download the boundary first before re-running P2, X1 or D2. The phone still holds the 2026-10-30 P1 data; sync it before it is used again.
+All test households are in Rigan Ori under `dis-qa-oct29`, named `QAID-<case>-<letter>`, listed in `artifacts/ledger.csv`, and synced - including the four households with the two duplicate IDs (X9, D5). Both emulators were left after D5 (2026-11-03 12:52): signed in, synced, online - `emulator-5554` 597 of 600 IDs, `emulator-5556` 596. The first emulator's fixtures (QAID-FIX-E1, E2) are on the server but no longer on the emulator - after a clear, the boundary step answers "Data found!" with Go To Home Screen, so download the boundary first before re-running P2, X1 or D2. The phone still holds the 2026-10-30 P1 data; sync it before it is used again.
 
 ### Questions for the dev
 
 1. **Search screen reset (RC-03, RC-02 a)**: on 2.2.120 every way back to Search Beneficiary - system Back, the Overview's Back link, Back To Search - shows it emptied, and the Back link drops the Overview (no second search screen). P1, P2, X1 and D2's stale-screen paths cannot be reached. Is the reset the fix? Which steps still reproduce RC-03 / RC-02 (a), if any?
 2. **`UPDATE_IDENTIFIER_STATUS` in the log**: no line is ever logged when an ID is checked or reallocated (only the form config naming the action, at sign-in). Under which tag and level does the build log it? Until then the plan's log check (P1, X1, D1 "reallocated") cannot run.
 3. ~~"Total beneficiary IDs" falls with every ID used~~ - **withdrawn**: our flow read the available figure twice; the app shows Total 600.
-4. **Config on UAT**: with 0 IDs the Low Beneficiary IDs popup shows only Download (no Skip) - the new config's behaviour. Is `REGISTRATION_kd_fix.json` already on UAT? If so the config-phase cases can start; and how should QA make UUID ("No Beneficiary ID") people for the edit cases, now that Skip is gone?
+4. **Config on UAT**: with 0 IDs the Low Beneficiary IDs popup shows only Download (no Skip) - **Skip was removed on purpose** (2026-11-03), so P6 is out of scope. Still open: is `REGISTRATION_kd_fix.json` already on UAT (then the config-phase cases can start), and how should QA make UUID ("No Beneficiary ID") people for the edit cases, now that Skip is gone?
 5. **Session length**: UAT rejected the app's token about 40 minutes after sign-in ("Sync Up Failed / Session Expired", 401 InvalidAccessTokenException; also "Failed to check data in server" at the boundary step). Is that the intended token lifetime? A field user would have to log out and in to sync.
+6. **`deviceUuid` is the Android build ID** (X9, 2026-11-03): the app logs each pool ID as `UniqueIdPoolModel(id: …, deviceUuid: BP22.250221.010, userUuid: <the CDD's>)` - `BP22.250221.010` is `ro.build.id`, the same on both emulators although their `android_id`s differ (`910e3e…`, `d222d5…`). Any two phones of one model on one OS update share it too. Does the server use `deviceUuid` to split a CDD's ID pool between devices? Both emulators re-fetched the same 600 IDs and gave A and B the same ID.
+7. **Download Beneficiary IDs greyed out** (2026-11-03 12:30): on `emulator-5554` at 598 of 600, about 20 minutes after a Re-Fetch IDs, the button was not clickable; at 599-600 earlier the same day it answered "Limit exceeded" → Re-Fetch IDs. When is the download disabled, and for how long?
 
 ## Setup
 
@@ -80,7 +90,9 @@ python .\scripts\report.py build                   # rebuild the report from res
 
 `run-case.ps1` records the device's log around the case, counts its `UPDATE_IDENTIFIER_STATUS` / `reallocated` lines against [scripts/cases.csv](scripts/cases.csv), and records the result. Each run writes to `artifacts/runs/<yyyyMMdd-HHmmss>-<case>/`. A part Maestro loses (no failed check, a connection error) is run again up to twice - its first attempt is kept as `<part>.lost-<n>`. X1 also records X2 (lines tagged `X2:`).
 
-Case order matters: X8 and P6 clear the app's data, so they run last, P6 the very last (it leaves the emulator with 0 IDs).
+**Two devices at the same time** (X9, D5): parts that share a stage number - `2-register-a.yaml` and `2-register-b@2.yaml` - run together, one per device, both signed in as the same CDD; the next stage starts when both are done. Each such part runs in its own PowerShell and its output is shown with the device in front (`[emulator-5556] …`); it is kept in `<part>\console.log`. Stages start together, so the two Submits land within seconds of each other (each Maestro run takes 5-15 s to start). Decided 2026-11-03 at QA's request: X9 no longer keeps the plan's order (device 1 syncs A before device 2 downloads).
+
+Case order matters: X8 clears the app's data, so it runs last. (P6, out of scope since 2026-11-03, cleared it too and left the emulator with 0 IDs.)
 
 ## Report
 
@@ -96,6 +108,8 @@ A case FAILs when any expected result is not met, when the log check finds the w
 
 `HCM_Beneficiary_ID` was made on 2026-11-02 from the Pixel_9_Pro_XL AVD's settings with a 12 GB data partition (the old AVD had 467 MB free and refused the 67 MB APK; its other HCM apps were left alone). Fixture households for the cases that open "an existing household": QAID-FIX-E1 (`102152221020`, with member QAID-FIX-E1-M1 `104511139711`) and QAID-FIX-E2 (`106431618121`) - [flows/setup/emulator-fixtures.yaml](flows/setup/emulator-fixtures.yaml).
 
+`HCM_Beneficiary_ID_2`, the second device for X9 and D5, has the same settings but a **6 GB** data partition (changed 2026-11-03; the original config is beside it as `config.ini.bak-20261103`). At 12 GB it never booted: the emulator checks for 1.2 × the partition free on C: (14.7 GB) and found 11.8 GB - `Not enough space to create userdata partition` in its log. The app needs 67 MB, so the size does not affect the cases. Both emulators run at 3 GB RAM (the emulator raises the AVD's 2 GB), so two need about 7 GB free.
+
 What broke runs, and what answers it ([scripts/start-emulator.ps1](scripts/start-emulator.ps1) sets all of it):
 
 - **Play Store updates** of Play Services killed the app mid-registration - Play Store is disabled on the emulator.
@@ -106,6 +120,7 @@ What broke runs, and what answers it ([scripts/start-emulator.ps1](scripts/start
 - **"System UI isn't responding"** after a cold boot - `accept-system-dialogs.yaml` taps Wait.
 - **Clipboard**: the emulator shares the PC's clipboard, and Gboard offers it as a paste suggestion - keep secrets off the clipboard while cases run (screenshots can show it).
 - **Session expiry**: UAT rejected the app's token about 40 minutes after sign-in ("Sync Up Failed / Session Expired"); `sync-data.yaml` logs out and signs in again.
+- **Two emulators on 16 GB** (2026-11-03): with both up and two Maestro runs going, free RAM fell to 0.5 GB and screens slowed - typing 9 characters took 38 s. What broke, and the answer: a search text landed garbled (`QAID-X9-A` as `QIDD-X9-A`) - `reg-search.yaml` types it again; Back pressed before home had drawn closed the app - `go-home.yaml` waits up to 6 s for home after each Back; a "Data Synced Successfully" came a minute after the sync - `sync-data.yaml` waits for a late one; a signed-in app showed its login screen for a moment on launch - `sign-in-cdd.yaml` waits 8 s before logging in. Close Chrome and Slack first.
 
 ## The test phone
 
@@ -119,7 +134,7 @@ What broke runs, and what answers it ([scripts/start-emulator.ps1](scripts/start
 
 | Folder | Holds |
 | --- | --- |
-| `cases/<case>/` | One folder per case (18), in parts (`1-…`, `2-…`; D11 `01-…`) that `run-case.ps1` runs in order |
+| `cases/<case>/` | One folder per case (17, and P6 kept for reference), in parts (`1-…`, `2-…`; D11 `01-…`) that `run-case.ps1` runs in order |
 | `flows/setup/` | Not cases: sign in, sign in and go home, the emulator's fixture households |
 | `subflows/common/` | Launch, sign-in, home, boundary and system dialogs, sync, logout |
 | `subflows/registration/` | Search, register a household (in parts), add member, consent No, back to search |

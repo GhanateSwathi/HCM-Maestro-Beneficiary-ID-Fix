@@ -13,26 +13,34 @@ name: reg-search
 # cursor anywhere in the text and eraseText deletes only before it: move to
 # the end first. An empty field shows its hint, and skips the 30 key presses
 # (about 15 s).
-- tapOn:
-    below: "Search by ID"
-    above: "Register New Beneficiary"
-    index: 0
-    label: "Focus the search field"
-- runFlow:
-    when:
-      notVisible: "Name of the individual"
+#
+# Typed again, up to 3 times, when what landed is not NAME: with two
+# emulators and 0.5 GB of RAM free, QAID-X9-A landed as QIDD-X9-A (a key
+# dropped, another doubled; X9, 2026-11-03 12:07). A retry starts on the
+# garbled text, which the clear above removes.
+- retry:
+    maxRetries: 3
     commands:
-      - repeat:
-          times: 30
+      - tapOn:
+          below: "Search by ID"
+          above: "Register New Beneficiary"
+          index: 0
+          label: "Focus the search field"
+      - runFlow:
+          when:
+            notVisible: "Name of the individual"
           commands:
-            - pressKey: Remote Dpad Right
-      - eraseText: 40
-- inputText: ${NAME}
-- runFlow: ../common/close-keyboard.yaml
-- assertVisible:
-    text: ${NAME}
-    below: "Search by ID"
-    label: "The search text is NAME"
+            - repeat:
+                times: 30
+                commands:
+                  - pressKey: Remote Dpad Right
+            - eraseText: 40
+      - inputText: ${NAME}
+      - runFlow: ../common/close-keyboard.yaml
+      - assertVisible:
+          text: ${NAME}
+          below: "Search by ID"
+          label: "The search text is NAME"
 - tapOn:
     text: "Register New Beneficiary"
     label: "Register New Beneficiary"

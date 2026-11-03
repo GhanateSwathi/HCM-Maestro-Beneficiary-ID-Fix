@@ -5,7 +5,6 @@ P2,Register button on the older search screen,A,cases/P2,
 P3,Popup before the ID count loads,A,cases/P3,
 P4,Re-download IDs before sync,A,cases/P4,
 P5,Six people in a row,A,cases/P5,
-P6,Skip with an empty pool (old config),A,cases/P6,
 X1,Stale ID on Add Member,"A, B",cases/X1,1
 X2,Acknowledgement shows the saved ID,"A, B",cases/X1,
 X3,Abandoned form uses no ID,A,cases/X3,

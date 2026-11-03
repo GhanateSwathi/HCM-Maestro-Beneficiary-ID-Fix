@@ -1,0 +1,14 @@
+appId: ${HCM_APP_ID}
+name: D5 part 1 - device 2 signs in and downloads IDs
+tags:
+  - phase-a
+---
+# D5 part 1 (see 1-start.yaml), device 2, at the same time as device 1: sign
+# in as the same CDD -> home -> N available as VAR N0_2 (no new download -
+# see 1-start.yaml). Ends on device 2's home screen.
+- runFlow:
+    file: ../../subflows/id/case-start.yaml
+    env:
+      NEED: 1
+      N_VAR: N0_2
+      T_VAR: T0_2

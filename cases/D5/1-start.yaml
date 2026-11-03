@@ -3,10 +3,16 @@ name: D5 part 1 - device 1 signs in and downloads IDs
 tags:
   - phase-a
 ---
-# Test plan D5 - same CDD, two devices, neither synced. Both devices download
-# IDs (Re-Fetch IDs on "Limit exceeded") and go into airplane mode; QAID-D5-A
-# is registered on device 1 and QAID-D5-B on device 2 (parts "@2"); the two
-# IDs are compared; then airplane mode off and Sync Data, device 1 first.
+# Test plan D5 - same CDD, two devices, neither synced - run in lockstep
+# (QA's decision, 2026-11-03): both emulators do each step at the same time,
+# signed in as the same CDD. Parts with the same number run together
+# (run-case.ps1); parts "@2" run on device 2 (DEVICE_ID_2).
+#   1  both sign in. No new download: Download Beneficiary IDs was greyed
+#      out on emulator-5554 at 598 of 600 (2026-11-03 12:30), so both use
+#      the pool each re-fetched in X9 at 12:09
+#   2  both go into airplane mode; device 1 registers QAID-D5-A, device 2
+#      QAID-D5-B
+#   3  A and B compared; both back online and Sync Data
 #
 # Expected: A != B. If A = B, the phone-side fix cannot catch it - each
 # device sees only its own data - and in Phase A the duplicate reaches the
@@ -21,4 +27,4 @@ tags:
     file: ../../subflows/id/case-start.yaml
     env:
       NEED: 1
-      DOWNLOAD: "yes"
+- evalScript: "${console.log('NOTE|No new ID download in D5 - Download Beneficiary IDs was greyed out (not clickable) on emulator-5554 at 598 of 600, 2026-11-03 12:30; both devices used the pool each re-fetched in X9 at 12:09')}"

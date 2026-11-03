@@ -5,10 +5,20 @@
 !.env.example
 
 # Screenshots and run output
-artifacts/
+artifacts/*
 .maestro/
 *.mp4
 *.png
+
+# Except the results, which hold no secret: the ID ledger, the results and
+# report, and the bug screenshots. artifacts/runs/ stays out - its Maestro
+# logs record the typed CDD password and its device logs the app's auth
+# token (202 log files held the password on 2026-11-03).
+!artifacts/ledger.csv
+!artifacts/results.csv
+!artifacts/report/
+!artifacts/findings/
+!artifacts/findings/*.png
 
 # OS
 .DS_Store

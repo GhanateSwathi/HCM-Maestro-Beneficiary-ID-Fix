@@ -1,0 +1,21 @@
+appId: ${HCM_APP_ID}
+name: X9b part 2 - device 2 signs in a minute after device 1
+tags:
+  - phase-a
+---
+# X9b part 2 (see 1-logout.yaml), device 2, from the login screen: 60 s
+# after the part starts - device 1 begins signing in then - sign in as the
+# same CDD and download IDs. Ends on the home screen.
+- extendedWaitUntil:
+    visible: "Never shown - device 2 signs in a minute after device 1"
+    timeout: 60000
+    optional: true
+    label: "Wait 60 s before signing in"
+- evalScript: "${console.log('NOTE|Device 2 began signing in at ' + new Date().toTimeString().slice(0, 8))}"
+- runFlow:
+    file: ../../subflows/id/case-start.yaml
+    env:
+      NEED: 1
+      DOWNLOAD: try
+      N_VAR: N0_2
+      T_VAR: T0_2

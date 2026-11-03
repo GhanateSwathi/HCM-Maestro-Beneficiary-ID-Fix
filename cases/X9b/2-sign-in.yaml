@@ -1,0 +1,13 @@
+appId: ${HCM_APP_ID}
+name: X9b part 2 - device 1 signs in and downloads IDs
+tags:
+  - phase-a
+---
+# X9b part 2 (see 1-logout.yaml), device 1, from the login screen, while
+# device 2 waits 60 s before its own sign-in. Ends on the home screen.
+- evalScript: "${console.log('NOTE|Device 1 began signing in at ' + new Date().toTimeString().slice(0, 8))}"
+- runFlow:
+    file: ../../subflows/id/case-start.yaml
+    env:
+      NEED: 1
+      DOWNLOAD: try

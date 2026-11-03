@@ -1,0 +1,32 @@
+appId: ${HCM_APP_ID}
+name: X9b part 5 - the ID check on device 2
+tags:
+  - phase-a
+---
+# X9b part 5 (see 1-logout.yaml), device 2, from the home screen, while device
+# 1 compares A and B and searches for A.
+# A "Data Synced Successfully" from part 4's sync can still be up (device 2,
+# 2026-11-03 12:18).
+- runFlow:
+    when:
+      visible: "Data Synced Successfully"
+    commands:
+      - tapOn:
+          text: "Close"
+          below: "Data Synced Successfully"
+          label: "Close a sync result left from part 4"
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 4 left device 2 on the home screen"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${X9B_ID_B}
+      HEAD: "QAID-X9b-B ${LAST_NAME}"
+- runFlow:
+    when:
+      true: ${output.id.failed}
+    file: ../../subflows/common/fail.yaml
+    env:
+      MESSAGE: "${'X9b failed - ' + output.id.failed}"

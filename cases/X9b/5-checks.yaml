@@ -1,0 +1,38 @@
+appId: ${HCM_APP_ID}
+name: X9b part 5 - the ID checks on device 1
+tags:
+  - phase-a
+---
+# X9b part 5 (see 1-logout.yaml), device 1, from the home screen, while device
+# 2 searches for B.
+# A "Data Synced Successfully" from part 4's sync can still be up (device 2,
+# 2026-11-03 12:18).
+- runFlow:
+    when:
+      visible: "Data Synced Successfully"
+    commands:
+      - tapOn:
+          text: "Close"
+          below: "Data Synced Successfully"
+          label: "Close a sync result left from part 4"
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 4 left device 1 on the home screen"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${String(X9B_ID_A) != String(X9B_ID_B) && String(X9B_ID_A).length == 12 && !/\D/.test(X9B_ID_A) && String(X9B_ID_B).length == 12 && !/\D/.test(X9B_ID_B)}
+      TEXT: "${String(X9B_ID_A) == String(X9B_ID_B) ? 'A and B got the SAME ID ' + X9B_ID_A + ' - registered at the same time, online, on two devices of one CDD' : 'A (device 1) and B (device 2), registered at the same time online by one CDD, have different 12-digit IDs - A ' + X9B_ID_A + ', B ' + X9B_ID_B}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${X9B_ID_A}
+      HEAD: "QAID-X9b-A ${LAST_NAME}"
+- runFlow:
+    when:
+      true: ${output.id.failed}
+    file: ../../subflows/common/fail.yaml
+    env:
+      MESSAGE: "${'X9b failed - ' + output.id.failed}"

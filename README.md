@@ -7,14 +7,15 @@ Maestro (Android) automation for the **Beneficiary ID Fix – QA Test Plan** (20
 | App | `org.egov.azm.gombe` 2.2.120 (label ADAMAWA-AZM) - the Kaduna fix build |
 | Device | From 2026-11-02: emulator `HCM_Beneficiary_ID` (Pixel 9 Pro XL, Android 16, 12 GB data), `emulator-5554` - see [The emulator](#the-emulator). Before: vivo V2059 phone, Android 13, serial `1361446350000MX` |
 | User | One CDD (`HCM_CDD_USER_ID` in `.env`) |
-| Cases | [TEST-CASES.md](TEST-CASES.md) - the 19 Phase A cases run, with result, comments and the ID ledger |
+| Cases | [TEST-CASES.md](TEST-CASES.md) - the 19 Phase A cases run, and X9b, with result, comments and the ID ledger |
 
 ## Where we left off (2026-11-03)
 
-**Phase A is done: 17 PASS, 2 FAIL (X9, D5).** The two-device cases ran on 2026-11-03 on both emulators at once - in lockstep, every step on both devices together, signed in as the same CDD (QA's decision; see [Running](#running)) - and **both gave one ID to two people**:
+**Phase A is done: 17 PASS, 2 FAIL (X9, D5)** - and X9b, QA's variant of X9, FAIL too. The two-device cases ran on 2026-11-03 on both emulators at once - in lockstep, every step on both devices together, signed in as the same CDD (QA's decision; see [Running](#running)) - and **both gave one ID to two people**:
 
 - **X9** (online): A on `emulator-5554` and B on `emulator-5556`, registered at the same moment, both got **121517171780** - the app's log at Submit, the card and the ledger agree on both devices. Both synced; the server accepted both (Data Synced Successfully). Search by ID on each device finds only its own household.
 - **D5** (offline): in the run itself A ≠ B (121030208213, 121751162220), but A's **121030208213** had already gone to QAID-D5-B on `emulator-5556` in an attempt stopped at 12:32 (synced with the rest at 12:52) - device 1 handed out an ID device 2 had used, because each device skips only the IDs it used itself.
+- **X9b** (QA's variant, sign-ins a minute apart): both log out; device 1 signs in at 14:55:50 and device 2 at 14:56:51, each re-fetching its IDs (596 of 600 on both); then A and B registered at the same moment both got **121212121234** - the minute between sign-ins changed nothing. Both synced.
 - Why the two devices hold one pool: the app reports `deviceUuid` as the Android build ID, the same on both emulators (question 6), and both re-fetched the same 600 IDs. Whether phones with different build IDs get different pools is not tested.
 
 **Next session - start here:**
@@ -43,6 +44,7 @@ No server checks (Postman) - decided 2026-11-02. D12 (two CDDs) and S3 (server s
 | D6 | PASS | Logging out and back in keeps used IDs used (592 → 592) |
 | D11 | PASS | Killed right after Submit, 3 rounds: A always saved with an ID and N 1 lower; B never A's ID |
 | X9 | **FAIL** | Two emulators, one CDD, online, A and B registered at the same moment: **both got 121517171780**; both synced |
+| X9b | **FAIL** | X9 with the sign-ins a minute apart, each device re-fetching its IDs: **both got 121212121234**; both synced |
 | D5 | **FAIL** | Two emulators, one CDD, offline: A got **121030208213**, already given to QAID-D5-B on the other emulator; both synced |
 | P6 | Out of scope | With 0 IDs the popup offers **only Download, no Skip** - Skip was removed on purpose (2026-11-03), so the case's precondition no longer exists. Its run (2026-11-02 18:44, then BLOCKED) is left out of the tracker; `cases/P6/` is kept for reference |
 
@@ -60,7 +62,7 @@ Two earlier runs were our automation's fault and are marked SUPERSEDED in `artif
 
 ### On UAT / on the devices
 
-All test households are in Rigan Ori under `dis-qa-oct29`, named `QAID-<case>-<letter>`, listed in `artifacts/ledger.csv`, and synced - including the four households with the two duplicate IDs (X9, D5). Both emulators were left after D5 (2026-11-03 12:52): signed in, synced, online - `emulator-5554` 597 of 600 IDs, `emulator-5556` 596. The first emulator's fixtures (QAID-FIX-E1, E2) are on the server but no longer on the emulator - after a clear, the boundary step answers "Data found!" with Go To Home Screen, so download the boundary first before re-running P2, X1 or D2. The phone still holds the 2026-10-30 P1 data; sync it before it is used again.
+All test households are in Rigan Ori under `dis-qa-oct29`, named `QAID-<case>-<letter>`, listed in `artifacts/ledger.csv`, and synced - including the six households with the three duplicate IDs (X9, X9b, D5). Both emulators were left after X9b (2026-11-03 15:12): signed in, synced, online - 595 of 600 IDs on each. The first emulator's fixtures (QAID-FIX-E1, E2) are on the server but no longer on the emulator - after a clear, the boundary step answers "Data found!" with Go To Home Screen, so download the boundary first before re-running P2, X1 or D2. The phone still holds the 2026-10-30 P1 data; sync it before it is used again.
 
 ### Questions for the dev
 
@@ -120,7 +122,7 @@ What broke runs, and what answers it ([scripts/start-emulator.ps1](scripts/start
 - **"System UI isn't responding"** after a cold boot - `accept-system-dialogs.yaml` taps Wait.
 - **Clipboard**: the emulator shares the PC's clipboard, and Gboard offers it as a paste suggestion - keep secrets off the clipboard while cases run (screenshots can show it).
 - **Session expiry**: UAT rejected the app's token about 40 minutes after sign-in ("Sync Up Failed / Session Expired"); `sync-data.yaml` logs out and signs in again.
-- **Two emulators on 16 GB** (2026-11-03): with both up and two Maestro runs going, free RAM fell to 0.5 GB and screens slowed - typing 9 characters took 38 s. What broke, and the answer: a search text landed garbled (`QAID-X9-A` as `QIDD-X9-A`) - `reg-search.yaml` types it again; Back pressed before home had drawn closed the app - `go-home.yaml` waits up to 6 s for home after each Back; a "Data Synced Successfully" came a minute after the sync - `sync-data.yaml` waits for a late one; a signed-in app showed its login screen for a moment on launch - `sign-in-cdd.yaml` waits 8 s before logging in. Close Chrome and Slack first.
+- **Two emulators on 16 GB** (2026-11-03): with both up and two Maestro runs going, free RAM fell to 0.5 GB and screens slowed - typing 9 characters took 38 s. What broke, and the answer: a search text landed garbled (`QAID-X9-A` as `QIDD-X9-A`) - `reg-search.yaml` types it again; Back pressed before home had drawn closed the app - `go-home.yaml` waits up to 6 s for home after each Back; a "Data Synced Successfully" came a minute after the sync - `sync-data.yaml` waits for a late one; a signed-in app showed its login screen for a moment on launch - `sign-in-cdd.yaml` waits 8 s before logging in (and for Allow Permissions, which also flashes by), and first waits for a screen that decides it - the app can be between screens; after a fresh login the boundary's "Data found!" offered Download / Proceed Without Downloading - `boundary-dialog.yaml` proceeds without; the download dialog ("Download in progress... 0/100") can take over 30 s to show - `download-ids.yaml` (try mode) waits 45 s. Close Chrome and Slack first.
 
 ## The test phone
 

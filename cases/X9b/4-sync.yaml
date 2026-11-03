@@ -1,0 +1,12 @@
+appId: ${HCM_APP_ID}
+name: X9b part 4 - device 1 syncs A
+tags:
+  - phase-a
+---
+# X9b part 4 (see 1-logout.yaml), device 1, from the home screen, while
+# device 2 syncs B. Ends on the home screen with A synced.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 3 left device 1 on the home screen"
+- runFlow: ../../subflows/common/sync-data.yaml

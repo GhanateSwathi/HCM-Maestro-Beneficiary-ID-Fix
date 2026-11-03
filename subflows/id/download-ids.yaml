@@ -22,30 +22,56 @@ name: download-ids
     text: "Download Beneficiary IDs"
     below: "Total beneficiary IDs"
     label: "Download Beneficiary IDs"
-- extendedWaitUntil:
-    visible: "Download Completed|.*Limit exceeded.*|Re-Fetch IDs"
-    timeout: 120000
-    label: "The download finishes or hits the limit"
-- takeScreenshot: artifacts/download-ids
-- evalScript: ${output.refetched = false}
+# TRY: "yes" goes on without a download when no dialog opens within 45 s:
+# on 2026-11-03 12:30 the button was greyed out (not clickable) on
+# emulator-5554 at 598 of 600, and the tap did nothing. A dialog shows
+# "Download in progress..." with a count ("0/100"), or its result - on a
+# busy PC it was missed by a 30 s wait (X9b, 2026-11-03 14:50).
+- evalScript: ${output.downloadSkipped = false}
 - runFlow:
     when:
-      visible: "Re-Fetch IDs"
+      true: ${typeof TRY != 'undefined' && TRY == 'yes'}
     commands:
-      - evalScript: ${output.refetched = true}
-      - tapOn:
-          text: "Re-Fetch IDs"
-          label: "Re-Fetch IDs"
       - extendedWaitUntil:
-          visible: "Download Completed"
+          visible: "Download Completed|.*Limit exceeded.*|Re-Fetch IDs|(?s).*Download in progress.*|(?s).*\\d+ ?/ ?\\d+.*"
+          timeout: 45000
+          optional: true
+          label: "The download dialog opens"
+      - runFlow:
+          when:
+            notVisible: "Download Completed|.*Limit exceeded.*|Re-Fetch IDs|(?s).*Download in progress.*|(?s).*\\d+ ?/ ?\\d+.*"
+          commands:
+            - takeScreenshot: artifacts/download-ids-greyed
+            - evalScript: ${output.downloadSkipped = true}
+            - evalScript: "${console.log('NOTE|Download Beneficiary IDs did not respond (the button greyed out) - went on with the IDs on the device')}"
+- runFlow:
+    when:
+      true: ${!output.downloadSkipped}
+    commands:
+      - extendedWaitUntil:
+          visible: "Download Completed|.*Limit exceeded.*|Re-Fetch IDs"
           timeout: 120000
-          label: "The re-fetch finishes"
-      - takeScreenshot: artifacts/refetch-ids
-- evalScript: "${console.log('NOTE|Download Beneficiary IDs - ' + (output.refetched ? 'Limit exceeded, tapped Re-Fetch IDs' : 'new download'))}"
-- tapOn:
-    text: "Close"
-    below: "Download Completed"
-    label: "Close"
+          label: "The download finishes or hits the limit"
+      - takeScreenshot: artifacts/download-ids
+      - evalScript: ${output.refetched = false}
+      - runFlow:
+          when:
+            visible: "Re-Fetch IDs"
+          commands:
+            - evalScript: ${output.refetched = true}
+            - tapOn:
+                text: "Re-Fetch IDs"
+                label: "Re-Fetch IDs"
+            - extendedWaitUntil:
+                visible: "Download Completed"
+                timeout: 120000
+                label: "The re-fetch finishes"
+            - takeScreenshot: artifacts/refetch-ids
+      - evalScript: "${console.log('NOTE|Download Beneficiary IDs - ' + (output.refetched ? 'Limit exceeded, tapped Re-Fetch IDs' : 'new download'))}"
+      - tapOn:
+          text: "Close"
+          below: "Download Completed"
+          label: "Close"
 - tapOn:
     text: "Back"
     above: "Beneficiary IDs"

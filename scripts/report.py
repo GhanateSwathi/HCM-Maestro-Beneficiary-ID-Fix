@@ -90,6 +90,10 @@ def flow_lines(run_dir, tag=""):
                 continue
             if lost:
                 continue
+            # An optional step that timed out logs "CommandWarned: Assertion
+            # is false" - not why the part stopped.
+            if "CommandWarned" in line:
+                continue
             m = re.search(r"(Assertion is false: .*|Element not found: .*)$", line)
             if m and not failure:
                 failure = m.group(1).strip()

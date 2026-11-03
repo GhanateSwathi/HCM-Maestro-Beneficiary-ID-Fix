@@ -1,0 +1,30 @@
+appId: ${HCM_APP_ID}
+name: X9b part 1 - device 2 logs out
+tags:
+  - phase-a
+---
+# X9b part 1 (see 1-logout.yaml), device 2, at the same time as device 1.
+- setAirplaneMode: disabled
+- runFlow: ../../subflows/common/launch-app.yaml
+- extendedWaitUntil:
+    visible: "User ID.*|.*Health Facility.*|Registration & Delivery|Beneficiary IDs|Allow Permissions"
+    timeout: 60000
+    label: "The login screen, or a signed-in screen (sign-in-cdd.yaml)"
+# An app already signed in can show its login screen for a moment on launch
+# (sign-in-cdd.yaml).
+- runFlow:
+    when:
+      visible: "User ID.*"
+    commands:
+      - extendedWaitUntil:
+          visible: ".*Health Facility.*|Registration & Delivery|Beneficiary IDs|Allow Permissions"
+          timeout: 8000
+          optional: true
+          label: "A signed-in app passes its login screen"
+- runFlow:
+    when:
+      notVisible: "User ID.*"
+    commands:
+      - runFlow: ../../subflows/common/home.yaml
+      - runFlow: ../../subflows/common/logout.yaml
+- evalScript: "${console.log('NOTE|Device 2 logged out at ' + new Date().toTimeString().slice(0, 8))}"

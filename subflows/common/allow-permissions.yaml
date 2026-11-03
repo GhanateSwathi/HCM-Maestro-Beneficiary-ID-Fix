@@ -34,8 +34,11 @@ name: allow-permissions
 # read and blindly tapping it could untick it. Continue is the only reliable
 # oracle - the app ignores it until the box is ticked. So press Continue
 # first, and tick the box only if that did not get past the screen.
+# Optional: the screen can move on by itself before the tap (X9b,
+# 2026-11-03 14:38); the steps below then find it gone.
 - tapOn:
     text: "Continue"
+    optional: true
     label: "Continue (passes only if the checkbox is already ticked)"
 - waitForAnimationToEnd:
     timeout: 3000

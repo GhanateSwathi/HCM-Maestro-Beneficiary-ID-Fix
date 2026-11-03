@@ -6,6 +6,15 @@ name: sign-in-cdd
 # login and Allow Permissions.
 - runFlow: launch-app.yaml
 
+# The app can be between screens when launch-app.yaml returns: on 2026-11-03
+# 14:16 (X9b, emulator-5556, signed out) neither check below saw "User ID",
+# the login was skipped, and the wait for the post-login sync ran out on the
+# login screen. Wait for a screen that decides it.
+- extendedWaitUntil:
+    visible: "User ID.*|.*Health Facility.*|Registration & Delivery|Beneficiary IDs|Allow Permissions"
+    timeout: 60000
+    label: "The login screen, or a signed-in screen"
+
 # An app already signed in can show its login screen for a moment on the way
 # to boundary selection or home: on a busy PC the login below then began on
 # a screen that had moved on (D5, emulator-5556, 2026-11-03 12:26). A login
@@ -36,6 +45,18 @@ name: sign-in-cdd
     visible: "Allow Permissions|.*Health Facility.*|Registration & Delivery|Beneficiary IDs"
     timeout: 300000
     label: "Post-login sync completes"
+# With nothing missing, Allow Permissions can flash by on the way to boundary
+# selection: on 2026-11-03 14:38 (X9b, emulator-5554) it had gone before
+# Continue was tapped. One still there after 8 s is a real one.
+- runFlow:
+    when:
+      visible: "Allow Permissions"
+    commands:
+      - extendedWaitUntil:
+          visible: ".*Health Facility.*|Registration & Delivery|Beneficiary IDs"
+          timeout: 8000
+          optional: true
+          label: "Allow Permissions passes on its own"
 - runFlow:
     when:
       visible: "Allow Permissions"

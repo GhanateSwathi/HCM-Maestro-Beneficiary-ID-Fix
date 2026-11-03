@@ -1,0 +1,46 @@
+appId: ${HCM_APP_ID}
+name: X9b part 1 - device 1 logs out
+tags:
+  - phase-a
+---
+# X9b - X9 with the two sign-ins a minute apart (QA's request, 2026-11-03):
+# same CDD on both emulators, device 2 signs in about 60 s after device 1.
+# Parts with the same number run together (run-case.ps1); parts "@2" run on
+# device 2 (DEVICE_ID_2).
+#   1  both log out (the app keeps its data - D6)
+#   2  device 1 signs in and downloads IDs; device 2 waits 60 s, then the
+#      same. "Download" is a try: the button was greyed out on 2026-11-03
+#      12:30, and then the device goes on with the IDs it holds (a NOTE says
+#      so). Each start time is logged.
+#   3  device 1 registers QAID-X9b-A, device 2 QAID-X9b-B, both online, at
+#      the same time
+#   4  both Sync Data
+#   5  the ID checks, each device on its own ID
+#
+# Expected: A != B; N available on each device drops by exactly 1; no ID
+# already in the ledger (report.py). VARs: N0, N0_2, X9B_ID_A, X9B_ID_B.
+# Writes two households to UAT.
+- setAirplaneMode: disabled
+- runFlow: ../../subflows/common/launch-app.yaml
+- extendedWaitUntil:
+    visible: "User ID.*|.*Health Facility.*|Registration & Delivery|Beneficiary IDs|Allow Permissions"
+    timeout: 60000
+    label: "The login screen, or a signed-in screen (sign-in-cdd.yaml)"
+# An app already signed in can show its login screen for a moment on launch
+# (sign-in-cdd.yaml).
+- runFlow:
+    when:
+      visible: "User ID.*"
+    commands:
+      - extendedWaitUntil:
+          visible: ".*Health Facility.*|Registration & Delivery|Beneficiary IDs|Allow Permissions"
+          timeout: 8000
+          optional: true
+          label: "A signed-in app passes its login screen"
+- runFlow:
+    when:
+      notVisible: "User ID.*"
+    commands:
+      - runFlow: ../../subflows/common/home.yaml
+      - runFlow: ../../subflows/common/logout.yaml
+- evalScript: "${console.log('NOTE|Device 1 logged out at ' + new Date().toTimeString().slice(0, 8))}"

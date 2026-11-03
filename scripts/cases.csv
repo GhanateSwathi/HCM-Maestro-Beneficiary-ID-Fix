@@ -13,6 +13,7 @@ X5,Double-tap Submit,A,cases/X5,
 X6,Offline registration,A,cases/X6,
 X8,Clear data after sync,A,cases/X8,
 X9,"Same CDD, two phones, synced","A, C",cases/X9,
+X9b,"Same CDD, two phones, sign-ins 1 min apart","A, C",cases/X9b,
 D1,Five heads from one search screen,A,cases/D1,4
 D2,Deep screen stack,A,cases/D2,
 D5,"Same CDD, two phones, unsynced","A, C",cases/D5,

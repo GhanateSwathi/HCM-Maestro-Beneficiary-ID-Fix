@@ -8,6 +8,8 @@ name: case-start
 # DOWNLOAD: "yes" downloads IDs first (Re-Fetch IDs on "Limit exceeded") - the
 # two-device cases X9 and D5 start each device that way. N_VAR / T_VAR name
 # the VARs instead of N0 / T0 (the second device's start uses N0_2 / T0_2).
+# DOWNLOAD: "try" downloads when the button answers and otherwise goes on
+# with the IDs on the device (download-ids.yaml, TRY).
 #
 # Airplane mode off first: P4 and X6 turn it on, and one that stops early
 # leaves it on - the cases after it then could not sign in (X6 and D11,
@@ -17,8 +19,10 @@ name: case-start
 - runFlow: ../common/home.yaml
 - runFlow:
     when:
-      true: ${typeof DOWNLOAD != 'undefined' && DOWNLOAD == 'yes'}
+      true: ${typeof DOWNLOAD != 'undefined' && (DOWNLOAD == 'yes' || DOWNLOAD == 'try')}
     file: download-ids.yaml
+    env:
+      TRY: "${typeof DOWNLOAD != 'undefined' && DOWNLOAD == 'try' ? 'yes' : 'no'}"
 - runFlow: read-available.yaml
 - runScript:
     file: id.js

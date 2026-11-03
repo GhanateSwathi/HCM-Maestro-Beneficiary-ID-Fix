@@ -74,6 +74,22 @@ name: boundary-dialog
                 notVisible: "Data found!"
                 timeout: 15000
                 label: "The dialog closes"
+      # After a fresh login (X9b, 2026-11-03 14:30) the dialog offered
+      # Download / Proceed Without Downloading instead.
+      - runFlow:
+          when:
+            visible: "Proceed Without Download.*"
+            notVisible: "Go To Home Screen"
+          commands:
+            - evalScript: "${console.log('NOTE|The boundary had records (Data found!) - went on without downloading them')}"
+            - tapOn:
+                text: "Proceed Without Download.*"
+                below: "Data found!"
+                label: "Proceed Without Downloading"
+            - extendedWaitUntil:
+                notVisible: "Data found!"
+                timeout: 15000
+                label: "The dialog closes"
 - runFlow:
     when:
       visible: "Data found!|Failed to check data.*"

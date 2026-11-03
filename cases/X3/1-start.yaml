@@ -1,0 +1,17 @@
+appId: ${HCM_APP_ID}
+name: X3 part 1 - sign in and note N available
+tags:
+  - phase-a
+---
+# Test plan X3 - an abandoned form uses no ID. QAID-X3-A is started twice
+# and left unsaved - once with system Back from Household Details, once by
+# killing the app on the filled-in head's form - then registered for real.
+#
+# Expected: N available unchanged after each abandoned form, then exactly 1
+# lower after the real registration; A's ID is not in the ledger (report.py).
+#
+# VARs: N0, X3_N_BACK, X3_N_KILL, X3_ID_A. Writes one household to UAT.
+- runFlow:
+    file: ../../subflows/id/case-start.yaml
+    env:
+      NEED: 1

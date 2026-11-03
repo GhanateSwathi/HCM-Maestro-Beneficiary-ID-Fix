@@ -1,0 +1,39 @@
+appId: ${HCM_APP_ID}
+name: D6 part 5 - the ID check
+tags:
+  - phase-a
+---
+# D6 part 5 (see 1-start.yaml), from the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 4 left the app on the home screen"
+- runFlow: ../../subflows/id/read-available.yaml
+- evalScript: ${output.n1 = output.id.available}
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: distinct
+      PEOPLE: "A=${D6_ID_A},B=${D6_ID_B}"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${Number(N0) - output.n1 == 2}
+      TEXT: "${'N available drops by exactly 2 in all - ' + N0 + ' to ' + output.n1}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${D6_ID_A}
+      HEAD: "QAID-D6-A ${LAST_NAME}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${D6_ID_B}
+      HEAD: "QAID-D6-B ${LAST_NAME}"
+- runFlow:
+    when:
+      true: ${output.id.failed}
+    file: ../../subflows/common/fail.yaml
+    env:
+      MESSAGE: "${'D6 failed - ' + output.id.failed}"

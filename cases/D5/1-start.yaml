@@ -1,0 +1,24 @@
+appId: ${HCM_APP_ID}
+name: D5 part 1 - device 1 signs in and downloads IDs
+tags:
+  - phase-a
+---
+# Test plan D5 - same CDD, two devices, neither synced. Both devices download
+# IDs (Re-Fetch IDs on "Limit exceeded") and go into airplane mode; QAID-D5-A
+# is registered on device 1 and QAID-D5-B on device 2 (parts "@2"); the two
+# IDs are compared; then airplane mode off and Sync Data, device 1 first.
+#
+# Expected: A != B. If A = B, the phone-side fix cannot catch it - each
+# device sees only its own data - and in Phase A the duplicate reaches the
+# server: report.py fails the case on the duplicate ID, which is that gap
+# (only the server setting of Phase C can stop it). The plan's server search
+# is not done (no server access).
+#
+# Two identical emulators (scripts/start-emulator.ps1). VARs: N0, N0_2,
+# D5_ID_A, D5_ID_B. Writes two households to UAT - with the same ID if the
+# gap is there (synced as the plan says, by the tester's decision).
+- runFlow:
+    file: ../../subflows/id/case-start.yaml
+    env:
+      NEED: 1
+      DOWNLOAD: "yes"

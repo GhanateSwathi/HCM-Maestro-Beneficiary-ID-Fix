@@ -1,0 +1,27 @@
+appId: ${HCM_APP_ID}
+name: P5 part 5 - N available and six different IDs
+tags:
+  - phase-a
+---
+# P5 part 5 (see 1-start.yaml), from the home screen. Ends on the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 4 left the app on the home screen"
+- runFlow: ../../subflows/id/read-available.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${Number(N0) - output.id.available == 6}
+      TEXT: "${'N available drops by exactly 6 - ' + N0 + ' to ' + output.id.available}"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: distinct
+      PEOPLE: "A=${P5_ID_A},A1=${P5_ID_A1},A2=${P5_ID_A2},A3=${P5_ID_A3},B=${P5_ID_B},C=${P5_ID_C}"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: note
+      TEXT: "${'Acknowledgement IDs - A1 ' + P5_ID_A1_ACK + ', A2 ' + P5_ID_A2_ACK + ', A3 ' + P5_ID_A3_ACK + (P5_ID_A1_ACK == P5_ID_A1 && P5_ID_A2_ACK == P5_ID_A2 && P5_ID_A3_ACK == P5_ID_A3 ? ', each the same as the card' : ' - NOT all the same as the cards')}"

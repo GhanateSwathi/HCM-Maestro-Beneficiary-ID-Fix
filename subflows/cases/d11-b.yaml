@@ -1,0 +1,40 @@
+appId: ${HCM_APP_ID}
+name: d11-b
+---
+# D11 (cases/D11), round R, after d11-reopen.yaml, from the home screen:
+# register QAID-D11-<R>B -> N available 1 lower than N_AFTER -> B's ID is not
+# A's (ID_A, empty when A was not saved) -> Search by ID for B (and A).
+# Ends on the home screen.
+- runFlow: ../registration/open-search.yaml
+- runFlow:
+    file: ../registration/register-and-read.yaml
+    env:
+      NAME: ${'QAID-D11-' + R + 'B'}
+      KEY: ${'D11_ID_' + R + 'B'}
+- evalScript: ${output.idB = output.id.last}
+- runFlow: ../common/go-home.yaml
+- runFlow: ../id/read-available.yaml
+- runScript:
+    file: ../id/id.js
+    env:
+      ACTION: check
+      OK: ${Number(N_AFTER) - output.id.available == 1}
+      TEXT: "${'Round ' + R + ' - N available 1 lower after B - ' + N_AFTER + ' to ' + output.id.available}"
+- runScript:
+    file: ../id/id.js
+    env:
+      ACTION: check
+      OK: ${String(output.idB).length == 12 && String(output.idB) != String(ID_A)}
+      TEXT: "${'Round ' + R + ' - B has a 12-digit ID that is not A' + String.fromCharCode(39) + 's - B ' + output.idB + ', A ' + (ID_A ? ID_A : 'not saved')}"
+- runFlow:
+    file: ../id/search-by-id.yaml
+    env:
+      ID: ${output.idB}
+      HEAD: "${'QAID-D11-' + R + 'B ' + LAST_NAME}"
+- runFlow:
+    when:
+      true: ${ID_A != ''}
+    file: ../id/search-by-id.yaml
+    env:
+      ID: ${ID_A}
+      HEAD: "${'QAID-D11-' + R + 'A ' + LAST_NAME}"

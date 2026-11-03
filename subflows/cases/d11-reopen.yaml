@@ -1,0 +1,70 @@
+appId: ${HCM_APP_ID}
+name: d11-reopen
+---
+# D11 (cases/D11), round R, after d11-kill.yaml: open the app -> N
+# available -> search QAID-D11-<R>A. Saved: read its ID (a ledger row) and N
+# must be 1 lower than N_BEFORE; not saved: N unchanged. Passes on VARs
+# D11_N_AFTER_<R> and D11_ID_<R>A (empty when not saved). Ends on the home
+# screen.
+- runFlow: ../common/sign-in-cdd.yaml
+- runFlow: ../common/home.yaml
+- runFlow: ../id/read-available.yaml
+- evalScript: ${output.nAfter = output.id.available}
+- runScript:
+    file: ../id/id.js
+    env:
+      ACTION: var
+      NAME: ${'D11_N_AFTER_' + R}
+      VALUE: ${output.nAfter}
+- runFlow: ../registration/open-search.yaml
+- tapOn:
+    below: "Search by ID"
+    above: "Register New Beneficiary"
+    index: 0
+    label: "Focus the search field"
+- inputText: ${'QAID-D11-' + R + 'A'}
+- runFlow: ../common/close-keyboard.yaml
+- extendedWaitUntil:
+    visible:
+      text: "Open"
+      rightOf: "${'QAID-D11-' + R + 'A'} .*"
+    timeout: 8000
+    optional: true
+    label: "Was A saved?"
+- takeScreenshot: artifacts/d11-round-${R}-search
+- evalScript: ${output.savedA = false}
+- evalScript: ${output.idA = ''}
+- runFlow:
+    when:
+      visible:
+        text: "Open"
+        rightOf: "${'QAID-D11-' + R + 'A'} .*"
+    commands:
+      - evalScript: ${output.savedA = true}
+      - tapOn:
+          text: "Open"
+          rightOf: "${'QAID-D11-' + R + 'A'} .*"
+          label: "Open A's household"
+      - extendedWaitUntil:
+          visible: "Household Overview"
+          timeout: 15000
+          label: "A's Household Overview"
+      - runFlow:
+          file: ../id/read-card.yaml
+          env:
+            PERSON: "${'QAID-D11-' + R + 'A ' + LAST_NAME}"
+            HOUSEHOLD: ${'QAID-D11-' + R + 'A'}
+      - evalScript: ${output.idA = output.id.last}
+- runScript:
+    file: ../id/id.js
+    env:
+      ACTION: var
+      NAME: ${'D11_ID_' + R + 'A'}
+      VALUE: ${output.idA}
+- runScript:
+    file: ../id/id.js
+    env:
+      ACTION: check
+      OK: "${output.savedA ? (Number(N_BEFORE) - output.nAfter == 1 && String(output.idA).length == 12) : Number(N_BEFORE) == output.nAfter}"
+      TEXT: "${'Round ' + R + ' - A was ' + (output.savedA ? 'saved with ' + output.idA + ' and N available went ' : 'not saved and N available went ') + N_BEFORE + ' to ' + output.nAfter + (output.savedA ? ' (expected -1)' : ' (expected unchanged)')}"
+- runFlow: ../common/go-home.yaml

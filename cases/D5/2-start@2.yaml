@@ -1,0 +1,13 @@
+appId: ${HCM_APP_ID}
+name: D5 part 2 - device 2 signs in and downloads IDs
+tags:
+  - phase-a
+---
+# D5 part 2 (see 1-start.yaml), device 2. Ends on device 2's home screen.
+- runFlow:
+    file: ../../subflows/id/case-start.yaml
+    env:
+      NEED: 1
+      DOWNLOAD: "yes"
+      N_VAR: N0_2
+      T_VAR: T0_2

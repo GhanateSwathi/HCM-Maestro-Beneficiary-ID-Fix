@@ -1,0 +1,23 @@
+appId: ${HCM_APP_ID}
+name: D2 part 1 - sign in and note N available
+tags:
+  - phase-a
+---
+# Test plan D2 - deep screen stack. The plan: S1 -> open a household -> its
+# Back link opens S2 -> open another -> Back link opens S3 -> register
+# QAID-D2-A on S3 -> three system Backs to S2 (still showing the second
+# household's name) -> QAID-D2-B -> three system Backs to S1 -> QAID-D2-C.
+#
+# Expected: three different 12-digit IDs, none already in the ledger
+# (report.py); N available drops by exactly 3.
+#
+# On 2.2.120 (emulator, 2026-11-02) the Back link returns to the one search
+# screen, emptied, so there is no stack: the parts note where each set of
+# three Backs lands and register B and C from a search screen there.
+#
+# Opens the fixtures QAID-FIX-E1 and QAID-FIX-E2. VARs: N0, D2_ID_A ...
+# D2_ID_C. Writes three households to UAT.
+- runFlow:
+    file: ../../subflows/id/case-start.yaml
+    env:
+      NEED: 3

@@ -1,0 +1,15 @@
+appId: ${HCM_APP_ID}
+name: D11 part 08 - round 3, Submit A and kill the app
+tags:
+  - phase-a
+---
+# D11 round 3 (see 01-start.yaml), from the home screen. Ends with the app
+# stopped.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 07 left the app on the home screen"
+- runFlow:
+    file: ../../subflows/cases/d11-kill.yaml
+    env:
+      R: 3

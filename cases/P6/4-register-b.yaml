@@ -1,0 +1,20 @@
+appId: ${HCM_APP_ID}
+name: P6 part 4 - household B (head only), Sync Data
+tags:
+  - phase-a
+---
+# P6 part 4 (see 1-sync-and-clear.yaml), on A's Household Overview. Ends on
+# the home screen with everything synced.
+- extendedWaitUntil:
+    visible: "QAID-P6-A3 ${LAST_NAME}"
+    timeout: 15000
+    label: "Part 3 left the app on A's Household Overview"
+- runFlow: ../../subflows/registration/to-search.yaml
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-P6-B
+      KEY: P6_ID_B
+      ON_POPUP: skip
+- runFlow: ../../subflows/common/go-home.yaml
+- runFlow: ../../subflows/common/sync-data.yaml

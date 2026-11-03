@@ -1,0 +1,25 @@
+appId: ${HCM_APP_ID}
+name: P2 part 1 - sign in and note N available
+tags:
+  - phase-a
+---
+# Test plan P2 (RC-02 a) - Register button on the older search screen. The
+# plan: search an existing household -> Open -> the Overview's Back link
+# opens a second, empty search screen -> system Back twice, to the Overview
+# and then to the first search screen, which must still show its text with
+# Register New Beneficiary enabled -> register QAID-P2-A from it.
+#
+# Expected: Register is enabled on the older screen; A gets an ID that is not
+# in the ledger (report.py); N available drops by 1.
+#
+# On the emulator, 2026-11-02, the Back link went back to the first search
+# screen, emptied, and system Back from there went to Select Your Village:
+# no second screen. Part 2 records where each step lands and, when the older
+# screen does not exist, registers A from the screen it reached.
+#
+# Opens the fixture QAID-FIX-E1 (flows/setup/emulator-fixtures.yaml). VARs:
+# N0, P2_ID_A. Writes one household to UAT.
+- runFlow:
+    file: ../../subflows/id/case-start.yaml
+    env:
+      NEED: 1

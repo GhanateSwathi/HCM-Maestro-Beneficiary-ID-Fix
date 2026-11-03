@@ -1,0 +1,39 @@
+appId: ${HCM_APP_ID}
+name: X5 part 2 - double-tap Submit on the head's form
+tags:
+  - phase-a
+---
+# X5 part 2 (see 1-start.yaml), from the home screen. Ends on the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 1 left the app on the home screen"
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/reg-start.yaml
+    env:
+      NAME: QAID-X5-A
+- runFlow:
+    file: ../../subflows/registration/reg-details.yaml
+    env:
+      NAME: QAID-X5-A
+- doubleTapOn:
+    text: "Submit"
+    label: "Double-tap Submit"
+- extendedWaitUntil:
+    visible: "Household Overview"
+    timeout: 30000
+    label: "Household Overview opens"
+- takeScreenshot: artifacts/x5-after-double-tap
+- runFlow:
+    file: ../../subflows/id/read-card.yaml
+    env:
+      PERSON: "QAID-X5-A ${LAST_NAME}"
+      HOUSEHOLD: QAID-X5-A
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: var
+      NAME: X5_ID_A
+      VALUE: ${output.id.last}
+- runFlow: ../../subflows/common/go-home.yaml

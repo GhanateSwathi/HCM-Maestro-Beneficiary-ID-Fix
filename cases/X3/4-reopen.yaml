@@ -1,0 +1,53 @@
+appId: ${HCM_APP_ID}
+name: X3 part 4 - reopen the app, N available, nothing saved
+tags:
+  - phase-a
+---
+# X3 part 4 (see 1-start.yaml): open the app again -> N available ->
+# search QAID-X3-A, which must not have been saved. Ends on the home screen.
+- runFlow: ../../subflows/common/sign-in-cdd.yaml
+- runFlow: ../../subflows/common/home.yaml
+- runFlow: ../../subflows/id/read-available.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${Number(X3_N_BACK) == output.id.available}
+      TEXT: "${'N available unchanged after the app was killed on the head form - ' + X3_N_BACK + ' to ' + output.id.available}"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: var
+      NAME: X3_N_KILL
+      VALUE: ${output.id.available}
+- runFlow: ../../subflows/registration/open-search.yaml
+- tapOn:
+    below: "Search by ID"
+    above: "Register New Beneficiary"
+    index: 0
+    label: "Focus the search field"
+- inputText: QAID-X3-A
+- runFlow: ../../subflows/common/close-keyboard.yaml
+- extendedWaitUntil:
+    visible:
+      text: "Open"
+      rightOf: "QAID-X3-A .*"
+    timeout: 8000
+    optional: true
+    label: "Is a QAID-X3-A household found?"
+- takeScreenshot: artifacts/x3-search-after-kill
+- evalScript: ${output.saved = false}
+- runFlow:
+    when:
+      visible:
+        text: "Open"
+        rightOf: "QAID-X3-A .*"
+    commands:
+      - evalScript: ${output.saved = true}
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${!output.saved}
+      TEXT: "${'Nothing was saved by the abandoned forms - a search for QAID-X3-A found ' + (output.saved ? 'a household' : 'none')}"
+- runFlow: ../../subflows/common/go-home.yaml

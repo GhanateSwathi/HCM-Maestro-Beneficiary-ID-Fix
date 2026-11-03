@@ -1,0 +1,34 @@
+appId: ${HCM_APP_ID}
+name: X9 part 5 - the ID check on device 2
+tags:
+  - phase-a
+---
+# X9 part 5 (see 1-start.yaml), device 2, from the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 4 left device 2 on the home screen"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${String(X9_ID_A) != String(X9_ID_B) && String(X9_ID_B).length == 12 && !/\D/.test(X9_ID_B)}
+      TEXT: "${'B (device 2) did not get A (device 1, synced first) ID - A ' + X9_ID_A + ', B ' + X9_ID_B}"
+- runFlow: ../../subflows/id/read-available.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${Number(N0_2) - output.id.available == 1}
+      TEXT: "${'Device 2 N available drops by exactly 1 for B - ' + N0_2 + ' to ' + output.id.available}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${X9_ID_B}
+      HEAD: "QAID-X9-B ${LAST_NAME}"
+- runFlow:
+    when:
+      true: ${output.id.failed}
+    file: ../../subflows/common/fail.yaml
+    env:
+      MESSAGE: "${'X9 failed - ' + output.id.failed}"

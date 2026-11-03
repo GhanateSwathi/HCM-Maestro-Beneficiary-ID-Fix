@@ -1,0 +1,23 @@
+appId: ${HCM_APP_ID}
+name: D5 part 7 - device 2 back online, Sync Data
+tags:
+  - phase-a
+---
+# D5 part 7 (see 1-start.yaml), device 2, from the home screen, after device
+# 1 synced A. In Phase A the server does not check IDs, so B is expected to
+# sync even when it carries A's ID; a rejection shows as a sync failure.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 5 left device 2 on the home screen"
+- setAirplaneMode: disabled
+- extendedWaitUntil:
+    visible: "Never shown - a pause while the network comes back"
+    timeout: 8000
+    optional: true
+- runFlow: ../../subflows/common/sync-data.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: note
+      TEXT: "${'Device 2 synced B after device 1 synced A - the server accepted B' + (String(D5_ID_A) == String(D5_ID_B) ? ' with the same ID as A: the duplicate is on the server' : '')}"

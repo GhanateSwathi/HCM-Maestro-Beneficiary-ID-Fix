@@ -1,0 +1,50 @@
+appId: ${HCM_APP_ID}
+name: open-search
+---
+# From the home screen: Registration & Delivery -> REGISTRATION_VILLAGE ->
+# Search Beneficiary, its field empty.
+#
+# Read off the app as dis-qa-oct29, 2026-10-30: "Select Your Village" lists
+# the community picked at sign-in over "Choose Another Village". The search
+# screen shows the village chip, "Search Beneficiary", "Search by ID", the
+# field (hint "Name of the individual") and "Register New Beneficiary"
+# (disabled while the field is empty). "Near by households" appears above
+# Search by ID only once the screen has loaded.
+- tapOn:
+    text: "Registration & Delivery"
+    label: "Open Registration & Delivery"
+# Just after airplane mode comes on, the tap can land as the app's
+# no-connection dialog opens (P4, 2026-11-02 15:05): close the dialog and
+# tap again.
+- extendedWaitUntil:
+    visible: "Select Your Village|CORE_COMMON_CONNECTION_LABEL"
+    timeout: 10000
+    optional: true
+    label: "Select Your Village opens"
+- runFlow: ../common/connection-dialog.yaml
+- runFlow:
+    when:
+      notVisible: "Select Your Village"
+    commands:
+      - tapOn:
+          text: "Registration & Delivery"
+          label: "Open Registration & Delivery again"
+- extendedWaitUntil:
+    visible: "Select Your Village"
+    timeout: 15000
+    label: "Select Your Village opens"
+- tapOn:
+    text: ${REGISTRATION_VILLAGE}
+    below: "Select Your Village"
+    label: "Open REGISTRATION_VILLAGE"
+# 30 s: on the software-rendered emulator the screen took over 15 s once
+# (D11, 2026-11-02 16:37).
+- extendedWaitUntil:
+    visible: "Name of the individual"
+    timeout: 30000
+    label: "Search Beneficiary opens, its field empty"
+- extendedWaitUntil:
+    visible: "Near by households"
+    timeout: 15000
+    optional: true
+    label: "The search screen finishes loading"

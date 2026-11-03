@@ -1,0 +1,19 @@
+appId: ${HCM_APP_ID}
+name: P3 part 1 - sign in and note N available
+tags:
+  - phase-a
+---
+# Test plan P3 (RC-04, RC-06) - popup before the ID count loads. Five cold
+# starts, each typing QAID-P3-A and tapping Register New Beneficiary as soon
+# as the search screen allows (subflows/cases/p3-try.yaml).
+#
+# Expected: no Low Beneficiary IDs popup in five tries. If it does appear,
+# Skip saves a 12-digit ID, never a UUID. Forms left unsaved use no ID, so N
+# available drops only for popup registrations.
+#
+# Before: 100 or more IDs available. VARs: N0, P3_ID_<try> (popup only).
+# Writes nothing to UAT unless the popup appears.
+- runFlow:
+    file: ../../subflows/id/case-start.yaml
+    env:
+      NEED: 100

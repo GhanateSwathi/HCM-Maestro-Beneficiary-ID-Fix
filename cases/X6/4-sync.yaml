@@ -1,0 +1,28 @@
+appId: ${HCM_APP_ID}
+name: X6 part 4 - airplane mode off, Sync Data
+tags:
+  - phase-a
+---
+# X6 part 4 (see 1-start.yaml), from the home screen. Ends on the home
+# screen with everything synced.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 3 left the app on the home screen"
+- setAirplaneMode: disabled
+- extendedWaitUntil:
+    visible: "Never shown - a pause while the network comes back"
+    timeout: 8000
+    optional: true
+- runFlow: ../../subflows/common/sync-data.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: "true"
+      TEXT: "Sync Data succeeded after the offline registrations (nothing left to sync)"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: note
+      TEXT: "Each ID once on the server - not checked yet (needs a server search, e.g. Postman)"

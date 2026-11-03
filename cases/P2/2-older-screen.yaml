@@ -1,0 +1,112 @@
+appId: ${HCM_APP_ID}
+name: P2 part 2 - the older search screen, then register A
+tags:
+  - phase-a
+---
+# P2 part 2 (see 1-start.yaml), from the home screen. Ends on the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 1 left the app on the home screen"
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/open-household.yaml
+    env:
+      HOUSEHOLD: QAID-FIX-E1
+- tapOn:
+    text: "Back"
+    above: "Household Overview"
+    label: "The Overview's Back link"
+- extendedWaitUntil:
+    visible: "Register New Beneficiary"
+    timeout: 15000
+    label: "A search screen opens"
+- takeScreenshot: artifacts/p2-after-back-link
+- back
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: artifacts/p2-after-system-back
+- evalScript: ${output.where = 'another screen'}
+- runFlow:
+    when:
+      visible: "Household Overview"
+    commands:
+      - evalScript: ${output.where = 'Household Overview'}
+- runFlow:
+    when:
+      visible: "Select Your Village"
+    commands:
+      - evalScript: ${output.where = 'Select Your Village'}
+- runFlow:
+    when:
+      visible: "Register New Beneficiary"
+    commands:
+      - evalScript: ${output.where = 'a search screen'}
+
+# The plan's path: the Overview, then the first search screen.
+- runFlow:
+    when:
+      true: ${output.where == 'Household Overview'}
+    commands:
+      - back
+      - extendedWaitUntil:
+          visible: "Register New Beneficiary"
+          timeout: 15000
+          label: "The first search screen"
+      - takeScreenshot: artifacts/p2-first-search-screen
+      - evalScript: ${output.kept = false}
+      - runFlow:
+          when:
+            visible:
+              text: "QAID-FIX-E1"
+              below: "Search by ID"
+          commands:
+            - evalScript: ${output.kept = true}
+      - runScript:
+          file: ../../subflows/id/id.js
+          env:
+            ACTION: check
+            OK: ${output.kept}
+            TEXT: "${'The first search screen still shows its search text QAID-FIX-E1 - ' + (output.kept ? 'it does' : 'the field is empty')}"
+      # Register's state shows only in what a tap does: with IDs on the
+      # phone it opens Household Location. Leaving the form unsaved uses no
+      # ID (X3).
+      - tapOn:
+          text: "Register New Beneficiary"
+          label: "Register New Beneficiary on the older screen"
+      - extendedWaitUntil:
+          visible: "Household Location|Low Beneficiary IDs"
+          timeout: 10000
+          optional: true
+          label: "Register opens the form"
+      - evalScript: ${output.enabled = false}
+      - runFlow:
+          when:
+            visible: "Household Location|Low Beneficiary IDs"
+          commands:
+            - evalScript: ${output.enabled = true}
+      - runScript:
+          file: ../../subflows/id/id.js
+          env:
+            ACTION: check
+            OK: ${output.enabled}
+            TEXT: "${'Register New Beneficiary is enabled on the older search screen - ' + (output.enabled ? 'it opened the form' : 'a tap did nothing (greyed out)')}"
+      - runFlow: ../../subflows/registration/to-search.yaml
+
+- runFlow:
+    when:
+      true: ${output.where != 'Household Overview'}
+    commands:
+      - runScript:
+          file: ../../subflows/id/id.js
+          env:
+            ACTION: note
+            TEXT: "${'NOT REPRODUCIBLE on this build - the Overview Back link did not open a second search screen: system Back from the screen it opened went to ' + output.where + ', not to Household Overview. The older search screen (steps 3-4) does not exist, so its Register button could not be checked. A was registered from a fresh search screen'}"
+      - runFlow: ../../subflows/registration/to-search.yaml
+
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-P2-A
+      KEY: P2_ID_A
+- runFlow: ../../subflows/common/go-home.yaml

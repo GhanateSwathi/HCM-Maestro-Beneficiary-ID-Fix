@@ -1,0 +1,118 @@
+appId: ${HCM_APP_ID}
+name: p3-try
+---
+# P3 (cases/P3), one try: force-stop the app and open it (a cold start makes
+# the race likelier) -> Registration & Delivery -> village -> type
+# QAID-P3-A and tap Register New Beneficiary as fast as Maestro can, without
+# waiting for the screen to settle. TRY numbers the try.
+#
+# Household Location: left with system Back (no ID used - X3). The Low
+# Beneficiary IDs popup: the bug - Skip, complete the form, and read the ID
+# Skip saved (12 digits, never a UUID). Ends wherever the try left the app;
+# the next try, and the part after the last one, start the app again.
+#
+# After this fast path, one system Back from Household Location closed the
+# app (emulator, 2026-11-02 15:25 and 16:10): the app's log shows three
+# routes popped at once around the Register tap ("appRouter.didPop" x3), so
+# nothing was left under the form, and Back ended the app ("VM exiting with
+# result code 0"). At normal speed Back returns to the search screen (X3).
+# Each try notes where Back went.
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "User ID.*|.*Health Facility.*|Registration & Delivery|No data found!|Pending Records"
+    timeout: 60000
+    label: "The app is open"
+- runFlow:
+    when:
+      visible: "User ID.*"
+    file: ../common/sign-in-cdd.yaml
+- runFlow: ../common/home.yaml
+- tapOn:
+    text: "Registration & Delivery"
+    label: "Open Registration & Delivery"
+- tapOn:
+    text: ${REGISTRATION_VILLAGE}
+    below: "Select Your Village"
+    label: "Open REGISTRATION_VILLAGE"
+- tapOn:
+    below: "Search by ID"
+    above: "Register New Beneficiary"
+    index: 0
+    waitToSettleTimeoutMs: 200
+    label: "Focus the search field at once"
+- inputText: QAID-P3-A
+- tapOn:
+    text: "Register New Beneficiary"
+    waitToSettleTimeoutMs: 200
+    label: "Register New Beneficiary at once"
+- extendedWaitUntil:
+    visible: "Low Beneficiary IDs|Household Location"
+    timeout: 15000
+    label: "Register opens the popup or the form"
+- takeScreenshot: artifacts/p3-try-${TRY}
+- runFlow:
+    when:
+      visible: "Household Location"
+    commands:
+      - runScript:
+          file: ../id/id.js
+          env:
+            ACTION: check
+            OK: "true"
+            TEXT: "${'Try ' + TRY + ' - Register opened the form, no Low Beneficiary IDs popup'}"
+      - back
+      - extendedWaitUntil:
+          visible: "Register New Beneficiary|Select Your Village|Registration & Delivery|Care giver's consent"
+          timeout: 8000
+          optional: true
+          label: "Where does Back go?"
+      - takeScreenshot: artifacts/p3-try-${TRY}-after-back
+      - evalScript: ${output.backStayed = false}
+      - runFlow:
+          when:
+            visible: "Register New Beneficiary|Select Your Village|Registration & Delivery|Household Location|Care giver's consent"
+          commands:
+            - evalScript: ${output.backStayed = true}
+      - runScript:
+          file: ../id/id.js
+          env:
+            ACTION: note
+            TEXT: "${'Try ' + TRY + ' - system Back from Household Location ' + (output.backStayed ? 'stayed in the app' : 'CLOSED THE APP (Android home screen) - the screens under the form were gone')}"
+- runFlow:
+    when:
+      visible: "Low Beneficiary IDs"
+    commands:
+      - runScript:
+          file: ../id/id.js
+          env:
+            ACTION: check
+            OK: "false"
+            TEXT: "${'Try ' + TRY + ' - the Low Beneficiary IDs popup appeared with IDs on the phone'}"
+      - tapOn:
+          text: "Skip"
+          below: "Low Beneficiary IDs"
+          label: "Skip"
+      - runFlow: ../registration/reg-location-consent.yaml
+      - runFlow:
+          file: ../registration/reg-details.yaml
+          env:
+            NAME: QAID-P3-A
+      - runFlow: ../registration/reg-submit.yaml
+      - runFlow:
+          file: ../id/read-card.yaml
+          env:
+            PERSON: "QAID-P3-A ${LAST_NAME}"
+            HOUSEHOLD: QAID-P3-A
+      - runScript:
+          file: ../id/id.js
+          env:
+            ACTION: check
+            OK: ${String(output.id.last).length == 12 && !/\D/.test(output.id.last)}
+            TEXT: "${'Try ' + TRY + ' - Skip saved a 12-digit ID, not a UUID - ' + output.id.last}"
+      - runScript:
+          file: ../id/id.js
+          env:
+            ACTION: var
+            NAME: ${'P3_ID_' + TRY}
+            VALUE: ${output.id.last}

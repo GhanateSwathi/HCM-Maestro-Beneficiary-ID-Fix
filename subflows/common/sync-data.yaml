@@ -1,0 +1,42 @@
+appId: ${HCM_APP_ID}
+name: sync-data
+---
+# From the home screen: Sync Data until nothing is left to sync - the home
+# screen's "Data Unsynced" card ("There are N transactions yet to be
+# synced") is gone. Ends on the home screen.
+#
+# UAT's access token stopped working about 40 minutes after sign-in on
+# 2026-11-02 (11:13 -> 11:51): the sync then fails with "Sync Up Failed /
+# Session Expired" (Close / Retry; the server answered 401
+# InvalidAccessTokenException) and Retry fails the same way. Logging out and
+# signing in again - which keeps unsynced records - fixed it, and the sync
+# after it uploaded all 4 records. So on that dialog this signs in again
+# once and syncs again.
+- tapOn:
+    text: "Sync Data"
+    label: "Sync Data"
+- runFlow: sync-wait.yaml
+- runFlow:
+    when:
+      visible: "Retry"
+    commands:
+      - takeScreenshot: artifacts/sync-failed
+      - evalScript: "${console.log('NOTE|Sync Data failed (Session Expired dialog) - signed in again and synced again')}"
+      - tapOn:
+          text: "Close"
+          above: "Retry"
+          label: "Close the sync failure"
+      - runFlow: logout.yaml
+      - runFlow: sign-in-cdd.yaml
+      - runFlow: home.yaml
+      - tapOn:
+          text: "Sync Data"
+          label: "Sync Data again"
+      - runFlow: sync-wait.yaml
+- assertNotVisible:
+    text: "Retry"
+    label: "The sync did not fail"
+- assertNotVisible:
+    text: "Data Unsynced"
+    label: "Nothing is left to sync"
+- takeScreenshot: artifacts/synced

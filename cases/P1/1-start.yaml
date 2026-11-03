@@ -1,0 +1,41 @@
+appId: ${HCM_APP_ID}
+name: P1 part 1 - sign in and note N available
+tags:
+  - phase-a
+  - phase-b
+---
+# Test plan P1 (R0, RC-03) - register twice from one search screen. The
+# search screen loads the next free ID when it opens and, before the fix,
+# offered that same ID again to the second person registered from it.
+#
+# Expected: A and B have different 12-digit IDs; N available drops by
+# exactly 2; Search by ID with A's ID finds only A's household (B's too,
+# for B); the log shows "reallocated" for B (scripts/run-case.ps1).
+#
+# Run with scripts/run-case.ps1 -Case P1, in four parts - Maestro loses the
+# test phone 5-7 minutes into any run. Values pass between parts as VAR
+# lines: P1_N0, P1_ID_A, P1_ID_B. Writes two households to UAT.
+#
+# Part 1: sign in, home, N available. Ends on the home screen.
+- runFlow: ../../subflows/common/sign-in-cdd.yaml
+- runFlow: ../../subflows/common/home.yaml
+- runFlow: ../../subflows/id/read-available.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: var
+      NAME: P1_N0
+      VALUE: ${output.id.available}
+- runFlow:
+    when:
+      true: ${output.id.available < 2}
+    commands:
+      - runScript:
+          file: ../../subflows/id/id.js
+          env:
+            ACTION: blocked
+            TEXT: "${'P1 needs at least 2 IDs on the phone; Beneficiary IDs showed ' + output.id.available + ' available. Download IDs first'}"
+      - runFlow:
+          file: ../../subflows/common/fail.yaml
+          env:
+            MESSAGE: ${output.id.failure}

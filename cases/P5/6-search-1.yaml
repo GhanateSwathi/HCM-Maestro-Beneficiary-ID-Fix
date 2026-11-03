@@ -1,0 +1,26 @@
+appId: ${HCM_APP_ID}
+name: P5 part 6 - Search by ID for A, A1 and A2
+tags:
+  - phase-a
+---
+# P5 part 6 (see 1-start.yaml), from the home screen. A member's ID finds
+# A's household.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 5 left the app on the home screen"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${P5_ID_A}
+      HEAD: "QAID-P5-A ${LAST_NAME}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${P5_ID_A1}
+      HEAD: "QAID-P5-A ${LAST_NAME}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${P5_ID_A2}
+      HEAD: "QAID-P5-A ${LAST_NAME}"

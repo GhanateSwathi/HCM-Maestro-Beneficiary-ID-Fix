@@ -1,0 +1,28 @@
+appId: ${HCM_APP_ID}
+name: X1 part 1 - sign in and note N available
+tags:
+  - phase-a
+  - phase-b
+---
+# Test plan X1 - stale ID on Add Member, with X2 (the Acknowledgement shows
+# the saved ID) inside it. H1's Household Overview loads the next free ID X;
+# the plan then registers H2 from a second search screen (H2 takes X) and
+# goes back to H1's still-open Overview to add member M, which offered X
+# again before the fix.
+#
+# Expected (X1): M's ID != H2's; N available drops by 2; one "reallocated"
+# line in the log (scripts/cases.csv). Expected (X2, tagged "X2:" - see
+# subflows/id/id.js): the ID on M's Acknowledgement, M's card and the
+# household Search by ID finds all match.
+#
+# On 2.2.120 (emulator, 2026-11-02) the Overview's Back link drops the
+# Overview, so system Back cannot reach H1's Overview again: part 2 notes
+# where it lands, and opens H1 afresh when the stale Overview is gone.
+#
+# H1 is the fixture QAID-FIX-E1 (flows/setup/emulator-fixtures.yaml; member
+# count 5, room for members). VARs: N0, X1_ID_H2, X1_ID_M, X1_ID_M_ACK.
+# Writes one household and one member to UAT.
+- runFlow:
+    file: ../../subflows/id/case-start.yaml
+    env:
+      NEED: 2

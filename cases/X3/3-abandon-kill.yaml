@@ -1,0 +1,22 @@
+appId: ${HCM_APP_ID}
+name: X3 part 3 - fill up to the head's form, then kill the app
+tags:
+  - phase-a
+---
+# X3 part 3 (see 1-start.yaml), from the home screen: QAID-X3-A again, up to
+# the head's form filled in, then the app is force-stopped (the plan: swipe
+# it away from Recent apps). Ends with the app stopped.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 2 left the app on the home screen"
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/reg-start.yaml
+    env:
+      NAME: QAID-X3-A
+- runFlow:
+    file: ../../subflows/registration/reg-details.yaml
+    env:
+      NAME: QAID-X3-A
+- stopApp

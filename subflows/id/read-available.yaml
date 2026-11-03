@@ -1,0 +1,69 @@
+appId: ${HCM_APP_ID}
+name: read-available
+---
+# From the home screen: Beneficiary IDs -> read "Number of available IDs"
+# and "Total beneficiary IDs" into output.id.available / output.id.total ->
+# Back to home. The ID check's step 3: N available drops by exactly 1 per
+# person created.
+#
+# Read off the app as dis-qa-oct29, 2026-10-30: a dial ("0" / "Beneficiary
+# IDs left"), "Low on Beneficiary IDs" while empty, then the two counts as
+# label / figure rows, and "Download Beneficiary IDs" at the foot.
+- tapOn:
+    text: "Beneficiary IDs"
+    below: "Registration & Delivery"
+    label: "Open Beneficiary IDs"
+- extendedWaitUntil:
+    visible: "Number of available IDs"
+    timeout: 15000
+    label: "Beneficiary IDs opens"
+# The counts paint as 0 and fill in about 3 s later: on 2026-10-30 18:54 P1
+# read "0 available of 0" 0.3 s after the screen opened, and 599 / 599 three
+# seconds on. Wait for the total to leave 0; a phone that really has no IDs
+# reads 0 after the 15 s.
+- extendedWaitUntil:
+    notVisible:
+      text: "0"
+      rightOf: "Total beneficiary IDs"
+    timeout: 15000
+    optional: true
+    label: "The counts load"
+- copyTextFrom:
+    text: "\\d+"
+    rightOf: "Number of available IDs"
+    above: "Total beneficiary IDs"
+    label: "Read N available"
+- runScript:
+    file: id.js
+    env:
+      ACTION: count
+      WHAT: available
+# Fenced below the available row too: "rightOf" alone also matches the
+# available figure (it is right of the label, one row up), and until
+# 2026-11-02 the total was read as N available - "597 available of 597"
+# logged while the screen showed 597 of 600 (X4, 12:09).
+- copyTextFrom:
+    text: "\\d+"
+    rightOf: "Total beneficiary IDs"
+    below: "Number of available IDs"
+    label: "Read the total"
+- runScript:
+    file: id.js
+    env:
+      ACTION: count
+      WHAT: total
+- runFlow:
+    when:
+      true: ${output.id.failure}
+    file: ../common/fail.yaml
+    env:
+      MESSAGE: ${output.id.failure}
+- evalScript: "${console.log('Beneficiary IDs - ' + output.id.available + ' available of ' + output.id.total)}"
+- tapOn:
+    text: "Back"
+    above: "Beneficiary IDs"
+    label: "Back to home"
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Back on the home screen"

@@ -1,0 +1,25 @@
+appId: ${HCM_APP_ID}
+name: D1 part 6 - Search by ID for A, B and C
+tags:
+  - phase-a
+---
+# D1 part 6 (see 1-start.yaml), from the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 5 left the app on the home screen"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${D1_ID_A}
+      HEAD: "QAID-D1-A ${LAST_NAME}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${D1_ID_B}
+      HEAD: "QAID-D1-B ${LAST_NAME}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${D1_ID_C}
+      HEAD: "QAID-D1-C ${LAST_NAME}"

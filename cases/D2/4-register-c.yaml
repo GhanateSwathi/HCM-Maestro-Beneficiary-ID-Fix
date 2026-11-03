@@ -1,0 +1,22 @@
+appId: ${HCM_APP_ID}
+name: D2 part 4 - three Backs towards S1, register C
+tags:
+  - phase-a
+---
+# D2 part 4 (see 1-start.yaml), on B's Household Overview. Ends on the home
+# screen.
+- extendedWaitUntil:
+    visible: "QAID-D2-B ${LAST_NAME}"
+    timeout: 15000
+    label: "Part 3 left the app on B's Household Overview"
+- runFlow:
+    file: ../../subflows/cases/d2-three-backs.yaml
+    env:
+      WANT: S1
+      SHOWS: QAID-FIX-E1
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-D2-C
+      KEY: D2_ID_C
+- runFlow: ../../subflows/common/go-home.yaml

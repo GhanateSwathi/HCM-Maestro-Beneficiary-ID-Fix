@@ -1,0 +1,57 @@
+appId: ${HCM_APP_ID}
+name: reg-details
+---
+# "Register a household", second part (see reg-start.yaml): from Household
+# Details, HOUSEHOLD_MEMBERS -> Next -> the head's form filled in (NAME
+# LAST_NAME, HEAD_AGE_YEARS, HEAD_GENDER). Ends on the filled-in form,
+# before Submit - X5 double-taps Submit and D11 kills the app right after it.
+- repeat:
+    times: ${Number(HOUSEHOLD_MEMBERS) - 1}
+    commands:
+      - tapOn:
+          text: "\\+"
+          below: "Total household members \\*"
+          label: "+ (towards HOUSEHOLD_MEMBERS)"
+- assertVisible:
+    text: ${HOUSEHOLD_MEMBERS}
+    below: "Total household members \\*"
+    label: "The member count is HOUSEHOLD_MEMBERS"
+- tapOn:
+    text: "Next"
+    label: "Next"
+
+# --- The head ------------------------------------------------------------------------
+- extendedWaitUntil:
+    visible: "First name \\*"
+    timeout: 15000
+    label: "The head's form opens"
+- assertVisible:
+    text: ${NAME}
+    below: "First name \\*"
+    above: "Last name \\*"
+    label: "First name is prefilled with NAME"
+- tapOn:
+    below: "Last name \\*"
+    above: "Household Head.*"
+    index: 0
+    label: "Focus Last name"
+- inputText: ${LAST_NAME}
+- runFlow: ../common/close-keyboard.yaml
+- tapOn:
+    text: "Year\\(s\\)"
+    below: "Age"
+    label: "Focus Age - Year(s)"
+- inputText: ${HEAD_AGE_YEARS}
+- runFlow: ../common/close-keyboard.yaml
+# Gender sits just above the Submit bar until the page scrolls.
+- scrollUntilVisible:
+    element: "Mobile number.*"
+    direction: DOWN
+    timeout: 5000
+    optional: true
+    label: "Bring Gender clear of the Submit bar"
+- tapOn:
+    text: ${HEAD_GENDER}
+    below: "Gender \\*"
+    label: "Pick HEAD_GENDER"
+- takeScreenshot: artifacts/head-${NAME}

@@ -1,0 +1,33 @@
+appId: ${HCM_APP_ID}
+name: X3 part 2 - fill Location and consent, then system Back out
+tags:
+  - phase-a
+---
+# X3 part 2 (see 1-start.yaml), from the home screen: QAID-X3-A ->
+# Register New Beneficiary -> Location -> consent Yes, then system Back to
+# the search screen without saving. Ends on the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 1 left the app on the home screen"
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/reg-start.yaml
+    env:
+      NAME: QAID-X3-A
+- takeScreenshot: artifacts/x3-before-back
+- runFlow: ../../subflows/registration/to-search.yaml
+- runFlow: ../../subflows/common/go-home.yaml
+- runFlow: ../../subflows/id/read-available.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${Number(N0) == output.id.available}
+      TEXT: "${'N available unchanged after the form left with system Back - ' + N0 + ' to ' + output.id.available}"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: var
+      NAME: X3_N_BACK
+      VALUE: ${output.id.available}

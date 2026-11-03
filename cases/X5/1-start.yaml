@@ -1,0 +1,16 @@
+appId: ${HCM_APP_ID}
+name: X5 part 1 - sign in and note N available
+tags:
+  - phase-a
+---
+# Test plan X5 - double-tap Submit. QAID-X5-A's head form is submitted with
+# a double tap.
+#
+# Expected: one household saved. If two are, that is a bug, and their IDs
+# must still differ. N available drops by 1 per person saved.
+#
+# VARs: N0, X5_ID_A. Writes one household to UAT (two, if the bug is there).
+- runFlow:
+    file: ../../subflows/id/case-start.yaml
+    env:
+      NEED: 2

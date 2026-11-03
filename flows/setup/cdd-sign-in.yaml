@@ -1,0 +1,8 @@
+appId: ${HCM_APP_ID}
+name: Setup - sign the phone in as the CDD
+tags:
+  - setup
+---
+# Not a test case: signs the phone in (if it is not already) so the cases can
+# start from a signed-in app. Writes nothing to UAT.
+- runFlow: ../../subflows/common/sign-in-cdd.yaml

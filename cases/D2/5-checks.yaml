@@ -1,0 +1,43 @@
+appId: ${HCM_APP_ID}
+name: D2 part 5 - the ID check
+tags:
+  - phase-a
+---
+# D2 part 5 (see 1-start.yaml), from the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 4 left the app on the home screen"
+- runFlow: ../../subflows/id/read-available.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${Number(N0) - output.id.available == 3}
+      TEXT: "${'N available drops by exactly 3 - ' + N0 + ' to ' + output.id.available}"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: distinct
+      PEOPLE: "A=${D2_ID_A},B=${D2_ID_B},C=${D2_ID_C}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${D2_ID_A}
+      HEAD: "QAID-D2-A ${LAST_NAME}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${D2_ID_B}
+      HEAD: "QAID-D2-B ${LAST_NAME}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${D2_ID_C}
+      HEAD: "QAID-D2-C ${LAST_NAME}"
+- runFlow:
+    when:
+      true: ${output.id.failed}
+    file: ../../subflows/common/fail.yaml
+    env:
+      MESSAGE: "${'D2 failed - ' + output.id.failed}"

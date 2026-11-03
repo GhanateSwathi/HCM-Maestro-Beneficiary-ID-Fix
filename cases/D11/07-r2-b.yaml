@@ -1,0 +1,17 @@
+appId: ${HCM_APP_ID}
+name: D11 part 07 - round 2, register B
+tags:
+  - phase-a
+---
+# D11 round 2 (see 01-start.yaml), from the home screen. Ends on the home
+# screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 06 left the app on the home screen"
+- runFlow:
+    file: ../../subflows/cases/d11-b.yaml
+    env:
+      R: 2
+      N_AFTER: ${D11_N_AFTER_2}
+      ID_A: ${D11_ID_2A}

@@ -1,0 +1,20 @@
+appId: ${HCM_APP_ID}
+name: X8 part 1 - sign in and note N available
+tags:
+  - phase-a
+---
+# Test plan X8 - clear data after sync. QAID-X8-A is registered and synced;
+# the app's data is cleared; the CDD signs in again and downloads IDs
+# (Re-Fetch IDs on "Limit exceeded"); then QAID-X8-B.
+#
+# Expected: the download leaves out every ID already synced (2026-10-26: a
+# Re-Fetch showed 598 of 600); B != A, and B is not in the ledger
+# (report.py).
+#
+# WIPES THE APP: run X8 after every case that opens the fixtures or earlier
+# households, and before P6 (which wipes it again). VARs: N0, X8_ID_A,
+# X8_N_D, X8_T_D, X8_ID_B. Writes two households to UAT.
+- runFlow:
+    file: ../../subflows/id/case-start.yaml
+    env:
+      NEED: 1

@@ -1,0 +1,36 @@
+appId: ${HCM_APP_ID}
+name: open-household
+---
+# On Search Beneficiary: search by name for HOUSEHOLD (the search text, e.g.
+# QAID-FIX-E1) -> Open its card. Ends on its Household Overview. The search
+# lists one card per household - the head's name, then Open.
+- tapOn:
+    below: "Search by ID"
+    above: "Register New Beneficiary"
+    index: 0
+    label: "Focus the search field"
+- runFlow:
+    when:
+      notVisible: "Name of the individual"
+    commands:
+      - repeat:
+          times: 30
+          commands:
+            - pressKey: Remote Dpad Right
+      - eraseText: 40
+- inputText: ${HOUSEHOLD}
+- runFlow: ../common/close-keyboard.yaml
+- extendedWaitUntil:
+    visible:
+      text: "Open"
+      rightOf: "${HOUSEHOLD} .*"
+    timeout: 15000
+    label: "HOUSEHOLD is found"
+- tapOn:
+    text: "Open"
+    rightOf: "${HOUSEHOLD} .*"
+    label: "Open HOUSEHOLD"
+- extendedWaitUntil:
+    visible: "Household Overview"
+    timeout: 15000
+    label: "Its Household Overview opens"

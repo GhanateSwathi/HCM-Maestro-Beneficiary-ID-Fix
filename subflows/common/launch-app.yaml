@@ -1,0 +1,23 @@
+appId: ${HCM_APP_ID}
+name: launch-app
+---
+# Opens the app on the test phone WITHOUT wiping it. The emulator flows this
+# project grew from launched with clearState; here the phone is a real device
+# and what is on it - downloaded beneficiary IDs, records not yet synced, the
+# households earlier cases made (P6's UUID people are needed in Phase B) - is
+# the very thing under test. Cases that need a wipe (P6, X8) sync first and
+# clear data themselves.
+#
+# launchApp grants the app's runtime permissions. That differs from a field
+# user's first start, but permissions are not under test in this plan.
+- launchApp:
+    label: "Launch the app, keeping its data"
+
+# Wherever the last session left it: the login screen, a launch prompt, the
+# app's Allow Permissions screen, boundary selection or home.
+- extendedWaitUntil:
+    visible: "User ID.*|Allow .*\\?|Let app always run in background.*|Turn on|.*isn't responding.*|Allow Permissions|Internet not available.*|CORE_COMMON_CONNECTION_LABEL|.*Health Facility.*|Registration & Delivery|Beneficiary IDs"
+    timeout: 60000
+    label: "Wait for the app's first screen"
+- runFlow: accept-system-dialogs.yaml
+- runFlow: connection-dialog.yaml

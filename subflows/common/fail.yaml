@@ -1,0 +1,22 @@
+appId: ${HCM_APP_ID}
+name: fail
+---
+# Fails the flow with MESSAGE as the reason, worded for a person. Call it
+# inside a `runFlow: when:` block that detects the failure, e.g.
+#   - runFlow:
+#       when:
+#         notVisible: "Manage Stock"
+#       file: ../fail.yaml
+#       env:
+#         MESSAGE: "Manage Stock card not displayed on home screen for State User."
+#
+# An assertion, not a thrown JavaScript error, because Maestro 2.10 puts a
+# failed assertion's text in the run summary and in report.html, but reports
+# a script error there only as "Unknown error". Nothing on screen reads like
+# MESSAGE as a whole, so this fails at once, and the reason reads
+#   Assertion is false: "<MESSAGE>" is visible
+- extendedWaitUntil:
+    visible:
+      text: ${MESSAGE}
+    timeout: 1
+    label: "Fail with a readable reason"

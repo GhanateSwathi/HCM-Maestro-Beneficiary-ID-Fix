@@ -1,0 +1,19 @@
+appId: ${HCM_APP_ID}
+name: X6 part 1 - sign in and note N available
+tags:
+  - phase-a
+---
+# Test plan X6 - offline registration. In airplane mode: QAID-X6-A, member
+# QAID-X6-A1, then QAID-X6-B from the search screen; the ID check on the
+# phone; then back online and Sync Data.
+#
+# Expected: three different 12-digit IDs, none already in the ledger
+# (report.py); N available drops by 3; Sync succeeds; each ID on the server
+# once (a server search, e.g. Postman - not automated here).
+#
+# VARs: N0, X6_ID_A, X6_ID_A1 (and _ACK), X6_ID_B. Writes two households and
+# three people to UAT.
+- runFlow:
+    file: ../../subflows/id/case-start.yaml
+    env:
+      NEED: 3

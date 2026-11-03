@@ -1,0 +1,44 @@
+appId: ${HCM_APP_ID}
+name: X8 part 3 - clear the app's data, sign in, download IDs
+tags:
+  - phase-a
+---
+# X8 part 3 (see 1-start.yaml), from the home screen with everything synced:
+# clear the app's data -> sign in as the same CDD -> Beneficiary IDs ->
+# Download (Re-Fetch IDs on "Limit exceeded") -> N available and the total.
+# Ends on the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 2 left the app on the home screen"
+- assertNotVisible:
+    text: "Data Unsynced"
+    label: "Nothing unsynced to lose"
+- clearState
+- runFlow: ../../subflows/common/sign-in-cdd.yaml
+- runFlow: ../../subflows/common/home.yaml
+- runFlow: ../../subflows/id/read-available.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: note
+      TEXT: "${'After clearing data and signing in - ' + output.id.available + ' available of ' + output.id.total}"
+- runFlow: ../../subflows/id/download-ids.yaml
+- runFlow: ../../subflows/id/read-available.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: var
+      NAME: X8_N_D
+      VALUE: ${output.id.available}
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: var
+      NAME: X8_T_D
+      VALUE: ${output.id.total}
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: note
+      TEXT: "${'After the download - ' + output.id.available + ' available of ' + output.id.total + ' (the plan: every ID already synced left out)'}"

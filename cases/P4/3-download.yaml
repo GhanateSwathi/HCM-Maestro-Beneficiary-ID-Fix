@@ -1,0 +1,48 @@
+appId: ${HCM_APP_ID}
+name: P4 part 3 - airplane mode off, straight to Download Beneficiary IDs
+tags:
+  - phase-a
+---
+# P4 part 3 (see 1-start.yaml), from the home screen: airplane mode off ->
+# Beneficiary IDs -> Download (or Re-Fetch IDs) -> N available and the
+# total. Ends on the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 2 left the app on the home screen"
+- evalScript: ${output.unsynced = false}
+- runFlow:
+    when:
+      visible: "Data Unsynced"
+    commands:
+      - evalScript: ${output.unsynced = true}
+- setAirplaneMode: disabled
+- extendedWaitUntil:
+    visible: "Never shown - a pause while the network comes back"
+    timeout: 8000
+    optional: true
+- runFlow: ../../subflows/id/download-ids.yaml
+- evalScript: ${output.unsyncedAfter = false}
+- runFlow:
+    when:
+      visible: "Data Unsynced"
+    commands:
+      - evalScript: ${output.unsyncedAfter = true}
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: note
+      TEXT: "${'Before the download X was ' + (output.unsynced ? 'not yet synced' : 'ALREADY SYNCED (the case is void)') + '; after it the home screen ' + (output.unsyncedAfter ? 'still showed Data Unsynced' : 'showed nothing left to sync - auto sync may have uploaded X during the download')}"
+- runFlow: ../../subflows/id/read-available.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: var
+      NAME: P4_N_D
+      VALUE: ${output.id.available}
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: var
+      NAME: P4_T_D
+      VALUE: ${output.id.total}

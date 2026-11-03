@@ -1,0 +1,24 @@
+appId: ${HCM_APP_ID}
+name: P4 part 1 - sign in and note N available
+tags:
+  - phase-a
+---
+# Test plan P4 (RC-15) - re-download IDs before sync. Before the fix, a
+# download made IDs used by records not yet synced free again.
+#
+# QAID-P4-X is registered in airplane mode (so it cannot sync); then, back
+# online, straight to Beneficiary IDs -> Download (Re-Fetch IDs on "Limit
+# exceeded"); then QAID-P4-Y; then Sync Data.
+#
+# Expected: after the download N available rises only by the number of new
+# IDs (with a Re-Fetch, it stays as it was) - X's ID is still counted as
+# used; Y != X; each ID on the server once (a server search, e.g. Postman - not
+# automated here). If auto sync
+# uploads X before the download, the case is void (noted in the result).
+#
+# VARs: N0, P4_ID_X, P4_N_X, P4_T_X, P4_N_D, P4_T_D, P4_ID_Y. Writes two
+# households to UAT.
+- runFlow:
+    file: ../../subflows/id/case-start.yaml
+    env:
+      NEED: 2

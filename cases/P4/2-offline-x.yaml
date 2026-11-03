@@ -1,0 +1,34 @@
+appId: ${HCM_APP_ID}
+name: P4 part 2 - airplane mode, register X
+tags:
+  - phase-a
+---
+# P4 part 2 (see 1-start.yaml), from the home screen: airplane mode on ->
+# QAID-P4-X -> N available and the total. Ends on the home screen, still in
+# airplane mode.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 1 left the app on the home screen"
+- setAirplaneMode: enabled
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-P4-X
+      KEY: P4_ID_X
+- runFlow: ../../subflows/common/go-home.yaml
+- runFlow: ../../subflows/id/read-available.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: var
+      NAME: P4_N_X
+      VALUE: ${output.id.available}
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: var
+      NAME: P4_T_X
+      VALUE: ${output.id.total}
+- takeScreenshot: artifacts/p4-x-unsynced

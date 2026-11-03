@@ -1,0 +1,26 @@
+appId: ${HCM_APP_ID}
+name: P1b part 7 - Search by ID for 2M, 2B and 3B
+tags:
+  - phase-a
+---
+# P1b part 7 (see 1-start.yaml), from the home screen. 2M's ID finds 2A's
+# household.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 6 left the app on the home screen"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${P1B_ID_2M}
+      HEAD: "QAID-P1b-2A ${LAST_NAME}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${P1B_ID_2B}
+      HEAD: "QAID-P1b-2B ${LAST_NAME}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${P1B_ID_3B}
+      HEAD: "QAID-P1b-3B ${LAST_NAME}"

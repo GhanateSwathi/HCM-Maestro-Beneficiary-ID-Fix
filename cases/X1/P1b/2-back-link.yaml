@@ -1,0 +1,33 @@
+appId: ${HCM_APP_ID}
+name: P1b part 2 - way 1, the Overview's Back link
+tags:
+  - phase-a
+---
+# P1b part 2 (see 1-start.yaml), from the home screen: 1A -> the Back link
+# on its Household Overview -> 1B from the search screen it opens. Ends on
+# the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 1 left the app on the home screen"
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-P1b-1A
+      KEY: P1B_ID_1A
+- tapOn:
+    text: "Back"
+    above: "Household Overview"
+    label: "The Overview's Back link"
+- extendedWaitUntil:
+    visible: "Register New Beneficiary"
+    timeout: 15000
+    label: "Back on a search screen"
+- takeScreenshot: artifacts/p1b-way1-search
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-P1b-1B
+      KEY: P1B_ID_1B
+- runFlow: ../../subflows/common/go-home.yaml

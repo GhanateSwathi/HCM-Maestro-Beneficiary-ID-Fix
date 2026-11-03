@@ -1,0 +1,78 @@
+appId: ${HCM_APP_ID}
+name: read-card
+---
+# On Household Overview: read PERSON's ID off their card into output.id.last
+# and log it to the ledger (HOUSEHOLD names the household). PERSON is the
+# card's full name, "<first> <last>".
+#
+# Read off the app as dis-qa-oct29, 2026-10-30: the overview's summary
+# ("Head of the household <name>", Settlement Area, Member Count, Caregiver
+# consent) and then a card per member - the ID tag (e.g. 101312415022),
+# Edit Individual, the name, "FEMALE | 30y 0m", "Head of household". The
+# head's name is on the summary too, so while the summary is on screen the
+# card's name is anchored below "Caregiver consent"; once it has scrolled
+# away (a member far down the list), the name alone is the anchor.
+#
+# The card's tag is the LAST tag above the name, not the first: Maestro's
+# "above" returns every tag above it, top one first. Until 2026-11-02 this
+# read the head's tag for every member (P5: A1-A3 recorded with A's ID
+# 101923175111 while their cards showed 109188162020, 101971014130 and
+# 102211816150). So the tags above the name are counted and the last copied.
+- extendedWaitUntil:
+    visible:
+      text: ${PERSON}
+    timeout: 15000
+    label: "PERSON's card is shown"
+- evalScript: ${output.tagIdx = 0}
+- runFlow:
+    when:
+      visible: "Caregiver consent"
+    commands:
+      - repeat:
+          times: 10
+          while:
+            visible:
+              text: "\\d{12}|No Beneficiary ID"
+              above:
+                text: ${PERSON}
+                below: "Caregiver consent"
+              index: ${output.tagIdx + 1}
+          commands:
+            - evalScript: ${output.tagIdx = output.tagIdx + 1}
+      - copyTextFrom:
+          text: "\\d{12}|No Beneficiary ID"
+          above:
+            text: ${PERSON}
+            below: "Caregiver consent"
+          index: ${output.tagIdx}
+          label: "Read PERSON's ID (the last tag above the name)"
+- runFlow:
+    when:
+      notVisible: "Caregiver consent"
+    commands:
+      - repeat:
+          times: 10
+          while:
+            visible:
+              text: "\\d{12}|No Beneficiary ID"
+              above: ${PERSON}
+              index: ${output.tagIdx + 1}
+          commands:
+            - evalScript: ${output.tagIdx = output.tagIdx + 1}
+      - copyTextFrom:
+          text: "\\d{12}|No Beneficiary ID"
+          above: ${PERSON}
+          index: ${output.tagIdx}
+          label: "Read PERSON's ID (summary scrolled away; the last tag above the name)"
+- runScript:
+    file: id.js
+    env:
+      ACTION: card
+      PERSON: ${PERSON}
+      HOUSEHOLD: ${HOUSEHOLD}
+- runFlow:
+    when:
+      true: ${output.id.failure}
+    file: ../common/fail.yaml
+    env:
+      MESSAGE: ${output.id.failure}

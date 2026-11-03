@@ -1,0 +1,37 @@
+appId: ${HCM_APP_ID}
+name: X6 part 3 - the ID check on the phone, still offline
+tags:
+  - phase-a
+---
+# X6 part 3 (see 1-start.yaml), from the home screen. Ends on the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 2 left the app on the home screen"
+- runFlow: ../../subflows/id/read-available.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${Number(N0) - output.id.available == 3}
+      TEXT: "${'N available drops by exactly 3 offline - ' + N0 + ' to ' + output.id.available}"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: distinct
+      PEOPLE: "A=${X6_ID_A},A1=${X6_ID_A1},B=${X6_ID_B}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${X6_ID_A}
+      HEAD: "QAID-X6-A ${LAST_NAME}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${X6_ID_A1}
+      HEAD: "QAID-X6-A ${LAST_NAME}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${X6_ID_B}
+      HEAD: "QAID-X6-B ${LAST_NAME}"

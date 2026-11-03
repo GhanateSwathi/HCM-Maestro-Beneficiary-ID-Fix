@@ -1,0 +1,30 @@
+appId: ${HCM_APP_ID}
+name: X8 part 5 - the ID check, then Sync Data
+tags:
+  - phase-a
+---
+# X8 part 5 (see 1-start.yaml), from the home screen. B's ID must not be A's
+# nor any other ID in the ledger (report.py) - the download must have left
+# out the IDs this CDD's synced records use.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 4 left the app on the home screen"
+- runFlow: ../../subflows/id/read-available.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${Number(X8_N_D) - output.id.available == 1}
+      TEXT: "${'N available drops by exactly 1 for B - ' + X8_N_D + ' to ' + output.id.available}"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: distinct
+      PEOPLE: "A=${X8_ID_A},B=${X8_ID_B}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${X8_ID_B}
+      HEAD: "QAID-X8-B ${LAST_NAME}"
+- runFlow: ../../subflows/common/sync-data.yaml

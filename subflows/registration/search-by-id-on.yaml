@@ -1,0 +1,31 @@
+appId: ${HCM_APP_ID}
+name: search-by-id-on
+---
+# On Search Beneficiary: turn Search by ID on.
+#
+# The switch is a text-less clickable left of its label. Fenced on three
+# sides: "leftOf" alone reaches the system navigation bar's Back button
+# (com.android.systemui:id/back, x 125-332), which Maestro prefers as
+# clickable - on 2026-10-30 an unfenced tap went Back to Select Your Village.
+# "Near by households" (the other switch, directly above) only appears once
+# the screen has loaded, so the upper fence falls back to the subtitle.
+- runFlow:
+    when:
+      visible: "Near by households"
+    commands:
+      - tapOn:
+          leftOf: "Search by ID"
+          below: "Near by households"
+          above: "Name of the individual|Id Search.*|Search by ID.*"
+          label: "Search by ID - on"
+- runFlow:
+    when:
+      notVisible: "Near by households"
+    commands:
+      - tapOn:
+          leftOf: "Search by ID"
+          below: "Search beneficiaries registered.*"
+          above: "Name of the individual"
+          label: "Search by ID - on"
+- waitForAnimationToEnd:
+    timeout: 3000

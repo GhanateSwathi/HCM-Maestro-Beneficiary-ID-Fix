@@ -1,0 +1,45 @@
+appId: ${HCM_APP_ID}
+name: P6 part 1 - Sync Data, clear the app's data, sign in (no IDs)
+tags:
+  - phase-a
+---
+# Test plan P6 (RC-05 baseline, Phase A only) - Skip with an empty pool,
+# old config. Makes the UUID ("No Beneficiary ID") people the plan's edit
+# cases need once the new config is on UAT.
+#
+# Sync Data -> clear the app's data -> sign in, without downloading IDs ->
+# QAID-P6-A (popup -> Skip), members QAID-P6-A1, A2, A3 (popup -> Skip each),
+# QAID-P6-B (head only) -> Sync Data.
+#
+# Expected: all five show the "No Beneficiary ID" tag (a UUID) - expected in
+# Phase A, until the config lands.
+#
+# WIPES THE APP and leaves it with 0 IDs: run P6 last. Do not clear this
+# emulator's data before Phase B, or it loses these people. VARs: N0,
+# P6_ID_A, A1-A3, B. Writes two households and five people to UAT.
+- runFlow: ../../subflows/common/sign-in-cdd.yaml
+- runFlow: ../../subflows/common/home.yaml
+- runFlow: ../../subflows/common/sync-data.yaml
+- clearState
+- runFlow: ../../subflows/common/sign-in-cdd.yaml
+- runFlow: ../../subflows/common/home.yaml
+- runFlow: ../../subflows/id/read-available.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: var
+      NAME: N0
+      VALUE: ${output.id.available}
+- runFlow:
+    when:
+      true: ${output.id.available > 0}
+    commands:
+      - runScript:
+          file: ../../subflows/id/id.js
+          env:
+            ACTION: blocked
+            TEXT: "${'P6 needs a phone with no IDs; after clearing data and signing in Beneficiary IDs showed ' + output.id.available + ' available'}"
+      - runFlow:
+          file: ../../subflows/common/fail.yaml
+          env:
+            MESSAGE: ${output.id.failure}

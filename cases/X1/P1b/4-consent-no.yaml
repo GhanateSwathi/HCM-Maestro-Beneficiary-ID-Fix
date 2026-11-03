@@ -1,0 +1,22 @@
+appId: ${HCM_APP_ID}
+name: P1b part 4 - way 3, consent No then Back To Search
+tags:
+  - phase-a
+---
+# P1b part 4 (see 1-start.yaml), from the home screen: 3A with consent No
+# (no ID) -> Back To Search -> 3B. Ends on the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 3 left the app on the home screen"
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/consent-no.yaml
+    env:
+      NAME: QAID-P1b-3A
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-P1b-3B
+      KEY: P1B_ID_3B
+- runFlow: ../../subflows/common/go-home.yaml

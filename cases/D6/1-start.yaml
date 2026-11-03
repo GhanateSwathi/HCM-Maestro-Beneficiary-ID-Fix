@@ -1,0 +1,16 @@
+appId: ${HCM_APP_ID}
+name: D6 part 1 - sign in and note N available
+tags:
+  - phase-a
+---
+# Test plan D6 - log out and back in. QAID-D6-A is registered, the CDD logs
+# out and back in (app data kept), then QAID-D6-B is registered.
+#
+# Expected: N available after signing in again is the same as before - A's
+# ID still counts as used; B != A; neither ID is in the ledger (report.py).
+#
+# VARs: N0, D6_ID_A, D6_N_A, D6_ID_B. Writes two households to UAT.
+- runFlow:
+    file: ../../subflows/id/case-start.yaml
+    env:
+      NEED: 2

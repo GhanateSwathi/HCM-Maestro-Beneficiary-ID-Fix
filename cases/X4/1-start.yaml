@@ -1,0 +1,18 @@
+appId: ${HCM_APP_ID}
+name: X4 part 1 - sign in and note N available
+tags:
+  - phase-a
+---
+# Test plan X4 - consent No uses no ID. A household saved with consent No
+# has no person, so it must not take an ID; B, registered from the search
+# screen the success screen returns to, gets the next free one.
+#
+# Expected: N available unchanged by the consent-No household (it drops by
+# exactly 1 in all, for B); B's ID is not in the ledger (report.py).
+#
+# Run with scripts/run-case.ps1 -Case X4. VARs: N0, X4_ID_B. Writes two
+# households to UAT (one with no person).
+- runFlow:
+    file: ../../subflows/id/case-start.yaml
+    env:
+      NEED: 1

@@ -1,0 +1,17 @@
+appId: ${HCM_APP_ID}
+name: go-home
+---
+# System Back until the home screen: Household Overview -> Search
+# Beneficiary -> Select Your Village -> home. Checked before every press,
+# so it never presses Back on home (that would leave the app).
+- repeat:
+    times: 6
+    while:
+      notVisible: "Registration & Delivery"
+    commands:
+      - back
+      - waitForAnimationToEnd:
+          timeout: 2000
+- assertVisible:
+    text: "Registration & Delivery"
+    label: "On the home screen"

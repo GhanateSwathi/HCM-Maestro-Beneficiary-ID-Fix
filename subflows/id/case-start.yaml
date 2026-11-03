@@ -1,0 +1,47 @@
+appId: ${HCM_APP_ID}
+name: case-start
+---
+# Every case's first part: sign in if needed, the home screen, then N
+# available as VAR N0 (and the total as T0) for the later parts. A device with
+# fewer than NEED IDs blocks the case: nothing is judged.
+#
+# DOWNLOAD: "yes" downloads IDs first (Re-Fetch IDs on "Limit exceeded") - the
+# two-device cases X9 and D5 start each device that way. N_VAR / T_VAR name
+# the VARs instead of N0 / T0 (the second device's start uses N0_2 / T0_2).
+#
+# Airplane mode off first: P4 and X6 turn it on, and one that stops early
+# leaves it on - the cases after it then could not sign in (X6 and D11,
+# 2026-11-02 15:05).
+- setAirplaneMode: disabled
+- runFlow: ../common/sign-in-cdd.yaml
+- runFlow: ../common/home.yaml
+- runFlow:
+    when:
+      true: ${typeof DOWNLOAD != 'undefined' && DOWNLOAD == 'yes'}
+    file: download-ids.yaml
+- runFlow: read-available.yaml
+- runScript:
+    file: id.js
+    env:
+      ACTION: var
+      NAME: "${typeof N_VAR == 'undefined' ? 'N0' : N_VAR}"
+      VALUE: ${output.id.available}
+- runScript:
+    file: id.js
+    env:
+      ACTION: var
+      NAME: "${typeof T_VAR == 'undefined' ? 'T0' : T_VAR}"
+      VALUE: ${output.id.total}
+- runFlow:
+    when:
+      true: ${output.id.available < Number(NEED)}
+    commands:
+      - runScript:
+          file: id.js
+          env:
+            ACTION: blocked
+            TEXT: "${'Needs at least ' + NEED + ' IDs on the device; Beneficiary IDs showed ' + output.id.available + ' available. Download IDs first'}"
+      - runFlow:
+          file: ../common/fail.yaml
+          env:
+            MESSAGE: ${output.id.failure}

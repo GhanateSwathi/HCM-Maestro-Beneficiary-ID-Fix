@@ -1,0 +1,8 @@
+# Only files under flows/ are runnable tests. Everything in subflows/ is a
+# building block pulled in via runFlow and must never execute on its own.
+#
+# The trailing ** is load-bearing: flows are grouped into feature-area
+# subfolders (flows/login/, flows/onboarding/, ...) and Maestro does not
+# recurse by default - "flows/*.yaml" would silently discover nothing.
+flows:
+  - "flows/**"

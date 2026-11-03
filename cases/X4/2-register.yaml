@@ -1,0 +1,33 @@
+appId: ${HCM_APP_ID}
+name: X4 part 2 - consent No for A, then B from the same search screen
+tags:
+  - phase-a
+---
+# X4 part 2 (see 1-start.yaml), from the home screen: QAID-X4-A with consent
+# No -> Back To Search -> QAID-X4-B with consent Yes from that same screen.
+# Ends on the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 1 left the app on the home screen"
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/consent-no.yaml
+    env:
+      NAME: QAID-X4-A
+- runFlow:
+    file: ../../subflows/registration/register-household.yaml
+    env:
+      NAME: QAID-X4-B
+- runFlow:
+    file: ../../subflows/id/read-card.yaml
+    env:
+      PERSON: "QAID-X4-B ${LAST_NAME}"
+      HOUSEHOLD: QAID-X4-B
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: var
+      NAME: X4_ID_B
+      VALUE: ${output.id.last}
+- runFlow: ../../subflows/common/go-home.yaml

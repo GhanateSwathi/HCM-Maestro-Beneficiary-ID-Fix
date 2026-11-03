@@ -1,0 +1,81 @@
+appId: ${HCM_APP_ID}
+name: accept-system-dialogs
+---
+# Answers every Android system prompt the app raises, one at a time, until
+# none is left. Called from launch-app.yaml (the notification prompt) and from
+# allow-permissions.yaml (one prompt per Grant button). Safe to call when no
+# prompt is up - the loop simply does not run.
+#
+# These are system windows, not the app: while one is up the app's own
+# hierarchy is hidden, so nothing behind it can be matched until it is
+# answered. They are matched by Android's resource ids rather than their
+# wording, which names the app and varies per tenant build
+# ("Allow SMC-MC to ...") and per Android version.
+#
+# The loop condition is the one place that relies on English wording: Maestro
+# cannot OR an id with a text, so the permission prompt is recognised by its
+# message, which always reads "Allow <app> to ...?".
+#
+# Capped at 8 rounds - the app asks for five permissions at most - so an
+# unexpected dialog fails the flow below instead of looping forever.
+- repeat:
+    times: 8
+    while:
+      visible: "Allow .*\\?|Let app always run in background.*|Turn on|.*isn't responding.*"
+    commands:
+      # A cold-booted emulator on software rendering can raise "System UI
+      # isn't responding" over everything (2026-11-02 13:02). Wait lets it
+      # catch up; Close app would restart System UI.
+      - runFlow:
+          when:
+            visible: ".*isn't responding.*"
+          commands:
+            - tapOn:
+                text: "Wait"
+                label: "Wait for the app that isn't responding"
+      # Location and camera offer "While using the app" / "Only this time" /
+      # "Don't allow" - there is no plain Allow. Pick what a field user picks.
+      - runFlow:
+          when:
+            visible:
+              id: "com.android.permissioncontroller:id/permission_allow_foreground_only_button"
+          commands:
+            - tapOn:
+                id: "com.android.permissioncontroller:id/permission_allow_foreground_only_button"
+                label: "Allow while using the app"
+      # Notifications and nearby devices offer a plain Allow.
+      - runFlow:
+          when:
+            visible:
+              id: "com.android.permissioncontroller:id/permission_allow_button"
+          commands:
+            - tapOn:
+                id: "com.android.permissioncontroller:id/permission_allow_button"
+                label: "Allow the permission"
+      # Battery-optimisation exemption. Field devices allow it so sync keeps
+      # running in the background. It is a system setting rather than app
+      # data, so clearState does not reset it and after the first run on a
+      # device it no longer appears.
+      - runFlow:
+          when:
+            visible: "Let app always run in background.*"
+          commands:
+            - tapOn:
+                id: "android:id/button1"
+                text: "Allow"
+                label: "Allow the app to run in the background"
+      # Google Play Services asks to enable Location Accuracy. Dismissing it is
+      # not enough - the app immediately re-prompts - so accept it.
+      - runFlow:
+          when:
+            visible: "Turn on"
+          commands:
+            - tapOn:
+                text: "Turn on"
+                label: "Turn on location accuracy"
+      - waitForAnimationToEnd:
+          timeout: 3000
+
+- assertNotVisible:
+    text: "Allow .*\\?|Let app always run in background.*|Turn on|.*isn't responding.*"
+    label: "No Android prompt left unanswered"

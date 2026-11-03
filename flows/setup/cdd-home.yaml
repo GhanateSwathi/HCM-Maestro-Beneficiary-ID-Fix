@@ -1,0 +1,11 @@
+appId: ${HCM_APP_ID}
+name: Setup - sign in and go to the home screen
+tags:
+  - setup
+---
+# Not a test case: opens the app, signs in if needed and answers the
+# boundary, ending on the home screen - where most case parts start. Run it
+# before resuming a case (run-case.ps1 -Resume) after the emulator or the
+# app restarted. Writes nothing to UAT.
+- runFlow: ../../subflows/common/sign-in-cdd.yaml
+- runFlow: ../../subflows/common/home.yaml

@@ -1,0 +1,18 @@
+appId: ${HCM_APP_ID}
+name: close-keyboard
+---
+# Closes the on-screen keyboard if it is up, with the keyboard's own Done
+# key. Never hideKeyboard or Back: on Android both are a Back press, and if
+# the keyboard is already gone Back reaches the app and leaves the form.
+# The test phone's keyboard is Gboard (2026-10-30), whose keys are in the
+# hierarchy; Done is key_pos_ime_action.
+- runFlow:
+    when:
+      visible:
+        id: "com.google.android.inputmethod.latin:id/key_pos_ime_action"
+    commands:
+      - tapOn:
+          id: "com.google.android.inputmethod.latin:id/key_pos_ime_action"
+          label: "Close the keyboard (Done)"
+      - waitForAnimationToEnd:
+          timeout: 2000

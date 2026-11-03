@@ -1,0 +1,25 @@
+appId: ${HCM_APP_ID}
+name: P5 part 7 - Search by ID for A3, B and C
+tags:
+  - phase-a
+---
+# P5 part 7 (see 1-start.yaml), from the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 6 left the app on the home screen"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${P5_ID_A3}
+      HEAD: "QAID-P5-A ${LAST_NAME}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${P5_ID_B}
+      HEAD: "QAID-P5-B ${LAST_NAME}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${P5_ID_C}
+      HEAD: "QAID-P5-C ${LAST_NAME}"

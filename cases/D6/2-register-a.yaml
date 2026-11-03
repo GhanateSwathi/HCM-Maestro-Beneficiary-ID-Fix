@@ -1,0 +1,24 @@
+appId: ${HCM_APP_ID}
+name: D6 part 2 - register A, note N available
+tags:
+  - phase-a
+---
+# D6 part 2 (see 1-start.yaml), from the home screen. Ends on the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 1 left the app on the home screen"
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-D6-A
+      KEY: D6_ID_A
+- runFlow: ../../subflows/common/go-home.yaml
+- runFlow: ../../subflows/id/read-available.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: var
+      NAME: D6_N_A
+      VALUE: ${output.id.available}

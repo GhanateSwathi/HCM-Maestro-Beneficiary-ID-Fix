@@ -1,0 +1,85 @@
+appId: ${HCM_APP_ID}
+name: boundary-dialog
+---
+# Answers the dialog the boundary Submit raises, when one is up (see
+# home.yaml): "No data found!" and "Pending Records" both offer Go To Home
+# Screen.
+# "Failed to check data in server" (Proceed Without Downloading / Retry),
+# seen on 2026-11-02 17:47 (P3, P5): Retry up to twice, then go on without
+# downloading - the cases need the ID pool, not the boundary's households.
+- repeat:
+    times: 2
+    while:
+      visible: "Failed to check data.*"
+    commands:
+      - takeScreenshot: artifacts/boundary-check-failed
+      - tapOn:
+          text: "Retry"
+          below: "Failed to check data.*"
+          label: "Retry the boundary check"
+      - extendedWaitUntil:
+          notVisible: "Failed to check data.*"
+          timeout: 60000
+          optional: true
+          label: "The check answers"
+- runFlow:
+    when:
+      visible: "Failed to check data.*"
+    commands:
+      - evalScript: "${console.log('NOTE|The boundary check failed twice (Failed to check data in server) - went on without downloading')}"
+      - tapOn:
+          text: "Proceed Without Download.*"
+          label: "Proceed Without Downloading"
+      - extendedWaitUntil:
+          notVisible: "Failed to check data.*"
+          timeout: 30000
+          label: "The dialog closes"
+
+# Tapped again while the dialog stays: a tap made as it was still opening
+# was lost on 2026-11-02 16:48 (P5).
+- repeat:
+    times: 3
+    while:
+      visible: "No data found!|Pending Records"
+    commands:
+      - tapOn:
+          text: "Go To Home Screen"
+          label: "Go To Home Screen"
+      - extendedWaitUntil:
+          notVisible: "No data found!|Pending Records"
+          timeout: 15000
+          optional: true
+          label: "The dialog closes"
+- assertNotVisible:
+    text: "No data found!|Pending Records"
+    label: "The dialog closed"
+# A boundary with records (it has them once the cases' households sync, and
+# X8 / P6 wipe the app): skip the download with Go To Home Screen when the
+# dialog offers it - the cases need the ID pool, not the households. Any
+# other answer, and "Failed to check data", stop with the dialog on screen
+# rather than guess its buttons.
+- runFlow:
+    when:
+      visible: "Data found!"
+    commands:
+      - takeScreenshot: artifacts/boundary-data-found
+      - runFlow:
+          when:
+            visible: "Go To Home Screen"
+          commands:
+            - tapOn:
+                text: "Go To Home Screen"
+                label: "Go To Home Screen"
+            - extendedWaitUntil:
+                notVisible: "Data found!"
+                timeout: 15000
+                label: "The dialog closes"
+- runFlow:
+    when:
+      visible: "Data found!|Failed to check data.*"
+    commands:
+      - takeScreenshot: artifacts/boundary-dialog-unhandled
+      - runFlow:
+          file: fail.yaml
+          env:
+            MESSAGE: "The boundary check showed a dialog this flow does not handle yet (see boundary-dialog-unhandled.png)."

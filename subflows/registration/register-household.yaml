@@ -1,0 +1,24 @@
+appId: ${HCM_APP_ID}
+name: register-household
+---
+# The plan's "Register a household", from Search Beneficiary: NAME as the
+# search text -> Register New Beneficiary -> Household Location -> consent
+# Yes -> HOUSEHOLD_MEMBERS -> the head (NAME LAST_NAME, HEAD_AGE_YEARS,
+# HEAD_GENDER) -> Submit. Ends on Household Overview. Creates the household
+# and uses an ID - IRREVERSIBLE.
+#
+# In three parts so a case can stop part-way: reg-start.yaml (search text to
+# consent), reg-details.yaml (member count and the head's form) and
+# reg-submit.yaml. ON_POPUP (see reg-start.yaml) passes through.
+#
+# Read off the app as dis-qa-oct29, 2026-10-30 (fixture QAID-FIX-H1):
+# "Household Location" (Administrative area, the village; Geo-coordinates,
+# the fix's accuracy "4.57 meters") - Next; "Care giver's consent" (Yes/No
+# radios, text-less, left of their labels) - Submit; "Household Details"
+# (Total household members, a - / + stepper from 1) - Next; "Household
+# Details" again for the head (First name prefilled with the search text,
+# Last name, Household Head/ Caregiver ticked, Date of birth (or) Age
+# Year(s)/Month(s), Gender Female/Male, Mobile number) - Submit.
+- runFlow: reg-start.yaml
+- runFlow: reg-details.yaml
+- runFlow: reg-submit.yaml

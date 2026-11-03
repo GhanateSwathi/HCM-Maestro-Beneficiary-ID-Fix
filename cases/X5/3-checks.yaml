@@ -1,0 +1,64 @@
+appId: ${HCM_APP_ID}
+name: X5 part 3 - how many households, and the ID check
+tags:
+  - phase-a
+---
+# X5 part 3 (see 1-start.yaml), from the home screen: search QAID-X5-A by
+# name - one card (one Open) per household - then N available and the ID
+# check.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 2 left the app on the home screen"
+- runFlow: ../../subflows/registration/open-search.yaml
+- tapOn:
+    below: "Search by ID"
+    above: "Register New Beneficiary"
+    index: 0
+    label: "Focus the search field"
+- inputText: QAID-X5-A
+- runFlow: ../../subflows/common/close-keyboard.yaml
+- extendedWaitUntil:
+    visible: "Open"
+    timeout: 15000
+    label: "QAID-X5-A is found"
+- takeScreenshot: artifacts/x5-search
+- evalScript: ${output.households = 1}
+- runFlow:
+    when:
+      visible:
+        text: "Open"
+        index: 1
+    commands:
+      - evalScript: ${output.households = 2}
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${output.households == 1}
+      TEXT: "${'One household saved by the double tap - a search for QAID-X5-A found ' + (output.households == 1 ? 'one' : 'two or more')}"
+- runFlow: ../../subflows/common/go-home.yaml
+- runFlow: ../../subflows/id/read-available.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${Number(N0) - output.id.available == output.households}
+      TEXT: "${'N available drops by 1 per household saved - ' + N0 + ' to ' + output.id.available + ' for ' + output.households}"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${String(X5_ID_A).length == 12 && !/\D/.test(X5_ID_A)}
+      TEXT: "${'A has a 12-digit ID - ' + X5_ID_A}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${X5_ID_A}
+      HEAD: "QAID-X5-A ${LAST_NAME}"
+- runFlow:
+    when:
+      true: ${output.id.failed}
+    file: ../../subflows/common/fail.yaml
+    env:
+      MESSAGE: "${'X5 failed - ' + output.id.failed}"

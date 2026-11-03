@@ -1,0 +1,60 @@
+appId: ${HCM_APP_ID}
+name: X1 part 4 - the ID check (and X2's searches)
+tags:
+  - phase-a
+  - phase-b
+---
+# X1 part 4 (see 1-start.yaml), from the home screen. X1's own checks
+# first, X2's (tagged) last.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 3 left the app on the home screen"
+- runFlow: ../../subflows/id/read-available.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      CASE: ""
+      ACTION: check
+      OK: ${Number(N0) - output.id.available == 2}
+      TEXT: "${'N available drops by exactly 2 - ' + N0 + ' to ' + output.id.available}"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      CASE: ""
+      ACTION: distinct
+      PEOPLE: "H2=${X1_ID_H2},M=${X1_ID_M}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      CASE: ""
+      ID: ${X1_ID_H2}
+      HEAD: "QAID-X1-H2 ${LAST_NAME}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      CASE: ""
+      ID: ${X1_ID_M}
+      HEAD: "QAID-FIX-E1 ${LAST_NAME}"
+
+# X2: Search by ID with the Acknowledgement's ID finds M's household too
+# (the card's ID was searched just above, for X1).
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      CASE: X2
+      ID: ${X1_ID_M_ACK}
+      HEAD: "QAID-FIX-E1 ${LAST_NAME}"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      CASE: X2
+      ACTION: check
+      OK: ${String(X1_ID_M) == String(X1_ID_M_ACK)}
+      TEXT: "${'Search by ID with the card ID ' + X1_ID_M + ' and with the Acknowledgement ID ' + X1_ID_M_ACK + ' - ' + (String(X1_ID_M) == String(X1_ID_M_ACK) ? 'the same ID, one household' : 'two different IDs')}"
+- runFlow:
+    when:
+      true: ${output.id.failed}
+    file: ../../subflows/common/fail.yaml
+    env:
+      MESSAGE: "${'X1 failed - ' + output.id.failed}"

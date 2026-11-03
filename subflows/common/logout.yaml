@@ -1,0 +1,21 @@
+appId: ${HCM_APP_ID}
+name: logout
+---
+# From any screen with the side menu (home, the search screens): Open
+# navigation menu -> Logout -> "Are you sure you want to end the session?"
+# Ok. Ends on the login screen. Keeps the app's data (D6, and sync-data.yaml
+# signing in again after "Session Expired").
+- tapOn:
+    text: "Open navigation menu"
+    label: "Open the side menu"
+- tapOn:
+    text: "Logout"
+    label: "Logout"
+- tapOn:
+    text: "Ok"
+    below: "Are you sure you want to end the session\\?"
+    label: "Ok - end the session"
+- extendedWaitUntil:
+    visible: "User ID.*"
+    timeout: 30000
+    label: "On the login screen"

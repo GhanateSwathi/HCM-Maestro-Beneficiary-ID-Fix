@@ -1,0 +1,121 @@
+appId: ${HCM_APP_ID}
+name: add-member
+---
+# The plan's "Add a member", from Household Overview: Add Members -> NAME
+# LAST_NAME, MEMBER_AGE_YEARS, MEMBER_GENDER, MEMBER_HEIGHT_CM -> Next ->
+# Ready to submit -> Submit. Ends on the Acknowledgement, with the ID it
+# shows in output.id.ack (X2 compares it with the card). Creates the member
+# and uses an ID - IRREVERSIBLE. ON_POPUP as in reg-start.yaml.
+#
+# Read off the app as dis-qa-oct29 on the emulator, 2026-11-02 (fixture
+# member QAID-FIX-E1-M1): "Add Members" at the foot of the overview opens
+# "Child's Details" - First name *, Last name *, Date of birth (or) Age
+# Year(s)/Month(s), Gender * Female/Male, then Height * once the age is in -
+# and Next. "Ready to submit ?" (Submit / Cancel) follows, then "Data
+# recorded Successfully" with "Token ID: <12 digits>", View Household
+# Details and Back To Search.
+- scrollUntilVisible:
+    element: "Add Members"
+    direction: DOWN
+    timeout: 10000
+    label: "Bring Add Members into view"
+- tapOn:
+    text: "Add Members"
+    label: "Add Members"
+- extendedWaitUntil:
+    visible: "Low Beneficiary IDs|Child's Details"
+    timeout: 15000
+    label: "Add Members opens the popup or the form"
+- runFlow:
+    when:
+      visible: "Low Beneficiary IDs"
+    commands:
+      - takeScreenshot: artifacts/low-id-popup-${NAME}
+      - runFlow:
+          when:
+            true: ${typeof ON_POPUP != 'undefined' && ON_POPUP == 'skip'}
+          commands:
+            - evalScript: "${console.log('NOTE|Add Members for ' + NAME + ' raised the Low Beneficiary IDs popup; tapped Skip')}"
+            - tapOn:
+                text: "Skip"
+                below: "Low Beneficiary IDs"
+                label: "Skip"
+      - runFlow:
+          when:
+            true: ${typeof ON_POPUP == 'undefined' || ON_POPUP != 'skip'}
+          commands:
+            - evalScript: "${console.log('CHECK|FAIL|Add Members for ' + NAME + ' raised the Low Beneficiary IDs popup with IDs on the phone')}"
+            - runFlow:
+                file: ../common/fail.yaml
+                env:
+                  MESSAGE: "${'Low Beneficiary IDs popup shown for ' + NAME + ' although IDs were on the phone.'}"
+- extendedWaitUntil:
+    visible: "Child's Details"
+    timeout: 15000
+    label: "Child's Details opens"
+- tapOn:
+    below: "First name \\*"
+    above: "Enter the full legal name.*"
+    index: 0
+    label: "Focus First name"
+- inputText: ${NAME}
+- runFlow: ../common/close-keyboard.yaml
+- tapOn:
+    below: "Last name \\*"
+    above: "Date of birth"
+    index: 0
+    label: "Focus Last name"
+- inputText: ${LAST_NAME}
+- runFlow: ../common/close-keyboard.yaml
+- tapOn:
+    text: "Year\\(s\\)"
+    below: "Age"
+    label: "Focus Age - Year(s)"
+- inputText: ${MEMBER_AGE_YEARS}
+- runFlow: ../common/close-keyboard.yaml
+- tapOn:
+    text: ${MEMBER_GENDER}
+    below: "Gender \\*"
+    label: "Pick MEMBER_GENDER"
+- scrollUntilVisible:
+    element: "Height \\*"
+    direction: DOWN
+    timeout: 5000
+    label: "Bring Height into view"
+- tapOn:
+    below: "Height \\*"
+    index: 0
+    label: "Focus Height"
+- inputText: ${MEMBER_HEIGHT_CM}
+- runFlow: ../common/close-keyboard.yaml
+- takeScreenshot: artifacts/member-${NAME}
+- tapOn:
+    text: "Next"
+    label: "Next"
+- extendedWaitUntil:
+    visible: "Ready to submit.*"
+    timeout: 15000
+    label: "Ready to submit"
+- tapOn:
+    text: "Submit"
+    below: "Ready to submit.*"
+    label: "Submit the member"
+- extendedWaitUntil:
+    visible: "Data recorded successfully"
+    timeout: 30000
+    label: "Acknowledgement opens"
+- copyTextFrom:
+    text: "Token ID: .*"
+    label: "Read the ID on the Acknowledgement"
+- runScript:
+    file: ../id/id.js
+    env:
+      ACTION: ack
+      PERSON: ${NAME}
+- takeScreenshot: artifacts/ack-${NAME}
+- runFlow:
+    when:
+      true: ${output.id.failure}
+    file: ../common/fail.yaml
+    env:
+      MESSAGE: ${output.id.failure}

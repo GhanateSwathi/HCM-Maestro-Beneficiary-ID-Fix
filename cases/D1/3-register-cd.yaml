@@ -1,0 +1,22 @@
+appId: ${HCM_APP_ID}
+name: D1 part 3 - system Back, C, system Back, D
+tags:
+  - phase-a
+---
+# D1 part 3 (see 1-start.yaml), on B's Household Overview. Ends on D's.
+- extendedWaitUntil:
+    visible: "QAID-D1-B ${LAST_NAME}"
+    timeout: 15000
+    label: "Part 2 left the app on B's Household Overview"
+- runFlow: ../../subflows/registration/to-search.yaml
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-D1-C
+      KEY: D1_ID_C
+- runFlow: ../../subflows/registration/to-search.yaml
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-D1-D
+      KEY: D1_ID_D

@@ -1,0 +1,47 @@
+appId: ${HCM_APP_ID}
+name: d2-three-backs
+---
+# D2 (cases/D2): from a new household's Overview, the plan's three system
+# Backs to the search screen WANT (S2 or S1), which should still show the
+# name SHOWS. Never presses Back on the home screen. Notes where the three
+# presses landed, then makes sure the app is on a search screen.
+- repeat:
+    times: 3
+    commands:
+      - runFlow:
+          when:
+            notVisible: "Registration & Delivery"
+          commands:
+            - back
+            - waitForAnimationToEnd:
+                timeout: 2000
+- takeScreenshot: artifacts/d2-three-backs-to-${WANT}
+- evalScript: ${output.where = 'another screen'}
+- runFlow:
+    when:
+      visible: "Registration & Delivery"
+    commands:
+      - evalScript: ${output.where = 'the home screen'}
+- runFlow:
+    when:
+      visible: "Select Your Village"
+    commands:
+      - evalScript: ${output.where = 'Select Your Village'}
+- runFlow:
+    when:
+      visible: "Register New Beneficiary"
+    commands:
+      - evalScript: ${output.where = 'a search screen with an empty field'}
+- runFlow:
+    when:
+      visible:
+        text: ${SHOWS}
+        below: "Search by ID"
+    commands:
+      - evalScript: "${output.where = 'a search screen showing ' + SHOWS}"
+- runScript:
+    file: ../id/id.js
+    env:
+      ACTION: note
+      TEXT: "${'Three system Backs towards ' + WANT + ' (the plan: a search screen still showing ' + SHOWS + ') landed on ' + output.where}"
+- runFlow: ../registration/to-search.yaml

@@ -1,0 +1,39 @@
+appId: ${HCM_APP_ID}
+name: Setup - fixture households on the emulator
+tags:
+  - setup
+---
+# Not a test case: registers the households the cases open as "an existing
+# household" on the HCM_Beneficiary_ID emulator, which holds none of the
+# phone's (2026-11-02: a search for QAID found nothing). Each from its own,
+# fresh search screen, so neither is a stale-screen registration.
+#
+#   QAID-FIX-E1  X1's H1 (member count 5, room for Add Member), P2, D2's S1
+#   QAID-FIX-E2  D2's second household
+#
+# Writes two households to UAT and uses two IDs. Their LEDGER lines go into
+# artifacts/ledger.csv as case SETUP.
+- runFlow: ../../subflows/common/sign-in-cdd.yaml
+- runFlow: ../../subflows/common/home.yaml
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/register-household.yaml
+    env:
+      NAME: QAID-FIX-E1
+- runFlow:
+    file: ../../subflows/id/read-card.yaml
+    env:
+      PERSON: "QAID-FIX-E1 ${LAST_NAME}"
+      HOUSEHOLD: QAID-FIX-E1
+- runFlow: ../../subflows/common/go-home.yaml
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/register-household.yaml
+    env:
+      NAME: QAID-FIX-E2
+- runFlow:
+    file: ../../subflows/id/read-card.yaml
+    env:
+      PERSON: "QAID-FIX-E2 ${LAST_NAME}"
+      HOUSEHOLD: QAID-FIX-E2
+- runFlow: ../../subflows/common/go-home.yaml

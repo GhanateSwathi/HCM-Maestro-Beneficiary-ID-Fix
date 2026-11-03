@@ -1,0 +1,19 @@
+appId: ${HCM_APP_ID}
+name: D1 part 1 - sign in and note N available
+tags:
+  - phase-a
+---
+# Test plan D1 - five heads from one search screen: QAID-D1-A, then system
+# Back to the search screen and B, C, D and E the same way.
+#
+# Expected: five different 12-digit IDs, none already in the ledger
+# (report.py); N available drops by exactly 5; four "reallocated" lines in
+# the log, for B to E (scripts/cases.csv) - if the screen keeps offering A's
+# ID. On 2.2.120 the search screen comes back reset (P1), so the log check
+# and the "At Submit" note show whether it did.
+#
+# VARs: N0, D1_ID_A ... D1_ID_E. Writes five households to UAT.
+- runFlow:
+    file: ../../subflows/id/case-start.yaml
+    env:
+      NEED: 5

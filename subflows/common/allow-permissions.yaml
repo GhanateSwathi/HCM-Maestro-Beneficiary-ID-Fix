@@ -1,0 +1,82 @@
+appId: ${HCM_APP_ID}
+name: allow-permissions
+---
+# The app's own "Allow Permissions" screen, shown after the post-login sync
+# whenever a permission it needs is missing. Every role passes through it, so
+# the sign-in subflows call this when the screen is up. It lists each
+# permission with a Grant button that disappears once granted, then a
+# required "background activity" checkbox and Continue.
+
+# Each Grant raises one Android prompt (or, for battery optimisation, the
+# "Let app always run in background?" dialog); accept-system-dialogs answers
+# it. Grant buttons are taken from the top, so the list shrinks every round.
+# Capped so a Grant that leads somewhere unexpected fails below rather than
+# looping forever.
+- repeat:
+    times: 8
+    while:
+      visible: "Grant"
+    commands:
+      - tapOn:
+          text: "Grant"
+          index: 0
+          label: "Grant the next permission"
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - runFlow: accept-system-dialogs.yaml
+
+- assertNotVisible:
+    text: "Permission not granted"
+    label: "Every listed permission is granted"
+
+# The checkbox is a bare Flutter widget: no text, no id, and its "checked"
+# attribute reads false whether or not it is ticked, so its state cannot be
+# read and blindly tapping it could untick it. Continue is the only reliable
+# oracle - the app ignores it until the box is ticked. So press Continue
+# first, and tick the box only if that did not get past the screen.
+- tapOn:
+    text: "Continue"
+    label: "Continue (passes only if the checkbox is already ticked)"
+- waitForAnimationToEnd:
+    timeout: 3000
+- runFlow:
+    when:
+      visible: "Allow Permissions"
+    commands:
+      # The box has no label of its own; it is the control left of its caption.
+      # The caption comes in two wordings: "Please check if background
+      # activity is enabled from settings. *" (2026-10-15 onwards), and "Allow
+      # background activity *" (state user, 2026-10-23 15:56 - with the cards
+      # renamed "Allow background activity in battery -> settings *" and
+      # "NearBy Share *"; the next sign-in, two minutes later, showed the old
+      # wording again). The second is matched whole: the battery card's title
+      # starts with the same words.
+      - tapOn:
+          leftOf: "Please check if background activity.*|Allow background activity( \\*)?"
+          label: "Tick the background-activity checkbox"
+
+# The app also ignores Continue while it is still loading the boundary
+# localisation it fetched during sync - over 10,000 entries on the mhbase
+# tenant, still arriving 2.5 minutes after login. A ticked box plus one
+# Continue then stays put (seen 2026-10-15). Continue changes nothing on its
+# own, so press it again until the app moves on: up to 6 presses, 20 s apart.
+# Each ignored press shows as a warning, not a failure.
+- repeat:
+    times: 6
+    while:
+      visible: "Allow Permissions"
+    label: "Continue until the app moves on"
+    commands:
+      - tapOn:
+          text: "Continue"
+          label: "Continue"
+      - extendedWaitUntil:
+          notVisible: "Allow Permissions"
+          timeout: 20000
+          optional: true
+          label: "App leaves Allow Permissions (it ignores Continue while busy)"
+
+# Known to be on screen before Continue, so this cannot pass vacuously.
+- assertNotVisible:
+    text: "Allow Permissions"
+    label: "Allow Permissions screen accepted"

@@ -1,0 +1,22 @@
+appId: ${HCM_APP_ID}
+name: D5 part 6 - device 1 back online, Sync Data
+tags:
+  - phase-a
+---
+# D5 part 6 (see 1-start.yaml), device 1, from the home screen. Ends on the
+# home screen with A synced.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 3 left device 1 on the home screen"
+- setAirplaneMode: disabled
+- extendedWaitUntil:
+    visible: "Never shown - a pause while the network comes back"
+    timeout: 8000
+    optional: true
+- runFlow: ../../subflows/common/sync-data.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: note
+      TEXT: "Device 1 synced A"

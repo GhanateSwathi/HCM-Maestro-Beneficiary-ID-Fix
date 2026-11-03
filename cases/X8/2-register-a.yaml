@@ -1,0 +1,19 @@
+appId: ${HCM_APP_ID}
+name: X8 part 2 - register A, Sync Data
+tags:
+  - phase-a
+---
+# X8 part 2 (see 1-start.yaml), from the home screen. Ends on the home
+# screen with everything synced.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 1 left the app on the home screen"
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-X8-A
+      KEY: X8_ID_A
+- runFlow: ../../subflows/common/go-home.yaml
+- runFlow: ../../subflows/common/sync-data.yaml

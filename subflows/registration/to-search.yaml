@@ -1,0 +1,43 @@
+appId: ${HCM_APP_ID}
+name: to-search
+---
+# System Back until a search screen, from wherever a registration left the
+# app (Household Overview, an Acknowledgement). Never presses Back on the
+# home screen - that leaves the app: from home, or from Select Your Village,
+# it opens the search screen for REGISTRATION_VILLAGE instead.
+#
+# On 2.2.120 every way back to Search Beneficiary shows it reset, its field
+# empty (emulator, 2026-11-02: system Back from a new household's or an
+# opened household's overview, and the overview's Back link, which also
+# drops the overview - one more system Back reaches Select Your Village).
+#
+# Each Back waits up to 5 s for one of those screens before the next: after
+# a cold start the app redraws slowly, and on 2026-11-02 14:59 (P3) four
+# quick Backs from Household Location went past them all and out of the app.
+- repeat:
+    times: 4
+    while:
+      notVisible: "Register New Beneficiary|Select Your Village|Registration & Delivery"
+    commands:
+      - back
+      - extendedWaitUntil:
+          visible: "Register New Beneficiary|Select Your Village|Registration & Delivery"
+          timeout: 5000
+          optional: true
+          label: "Wait for the screen Back leads to"
+- runFlow:
+    when:
+      visible: "Select Your Village"
+    commands:
+      - tapOn:
+          text: ${REGISTRATION_VILLAGE}
+          below: "Select Your Village"
+          label: "Open REGISTRATION_VILLAGE"
+- runFlow:
+    when:
+      visible: "Registration & Delivery"
+    file: open-search.yaml
+- extendedWaitUntil:
+    visible: "Register New Beneficiary"
+    timeout: 15000
+    label: "On Search Beneficiary"

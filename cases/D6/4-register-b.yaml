@@ -1,0 +1,17 @@
+appId: ${HCM_APP_ID}
+name: D6 part 4 - register B
+tags:
+  - phase-a
+---
+# D6 part 4 (see 1-start.yaml), from the home screen. Ends on the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 3 left the app on the home screen"
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-D6-B
+      KEY: D6_ID_B
+- runFlow: ../../subflows/common/go-home.yaml

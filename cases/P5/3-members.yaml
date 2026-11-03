@@ -1,0 +1,22 @@
+appId: ${HCM_APP_ID}
+name: P5 part 3 - members A2 and A3
+tags:
+  - phase-a
+---
+# P5 part 3 (see 1-start.yaml), on A's Household Overview. Ends there.
+- extendedWaitUntil:
+    visible: "QAID-P5-A1 ${LAST_NAME}"
+    timeout: 15000
+    label: "Part 2 left the app on A's Household Overview"
+- runFlow:
+    file: ../../subflows/registration/add-member-and-read.yaml
+    env:
+      NAME: QAID-P5-A2
+      HOUSEHOLD: QAID-P5-A
+      KEY: P5_ID_A2
+- runFlow:
+    file: ../../subflows/registration/add-member-and-read.yaml
+    env:
+      NAME: QAID-P5-A3
+      HOUSEHOLD: QAID-P5-A
+      KEY: P5_ID_A3

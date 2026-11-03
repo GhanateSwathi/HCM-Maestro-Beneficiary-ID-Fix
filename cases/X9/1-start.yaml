@@ -1,0 +1,22 @@
+appId: ${HCM_APP_ID}
+name: X9 part 1 - device 1 signs in and downloads IDs
+tags:
+  - phase-a
+---
+# Test plan X9 - same CDD, two devices, synced. Device 1 (DEVICE_ID) downloads
+# IDs, registers QAID-X9-A and syncs; then device 2 (DEVICE_ID_2, parts
+# "@2"), signed in as the same CDD, downloads IDs (Re-Fetch IDs on "Limit
+# exceeded"), registers QAID-X9-B and syncs.
+#
+# Expected: B != A - the IDs device 2 gets leave out A's, which device 1
+# synced first; no ID already in the ledger (report.py). The plan's server
+# search of both IDs is not done (no server access).
+#
+# Two identical emulators (scripts/start-emulator.ps1, HCM_Beneficiary_ID and
+# HCM_Beneficiary_ID_2). VARs: N0, X9_ID_A, N0_2, X9_ID_B. Writes two
+# households to UAT.
+- runFlow:
+    file: ../../subflows/id/case-start.yaml
+    env:
+      NEED: 1
+      DOWNLOAD: "yes"

@@ -1,0 +1,17 @@
+appId: ${HCM_APP_ID}
+name: P4 part 4 - register Y
+tags:
+  - phase-a
+---
+# P4 part 4 (see 1-start.yaml), from the home screen. Ends on the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 3 left the app on the home screen"
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-P4-Y
+      KEY: P4_ID_Y
+- runFlow: ../../subflows/common/go-home.yaml

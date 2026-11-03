@@ -1,0 +1,12 @@
+# Normalise line endings on commit. run.sh must land in the repo with LF or it
+# breaks for anyone cloning on Linux or macOS, regardless of their core.autocrlf.
+* text=auto eol=lf
+
+# run.ps1 is Windows-only; CRLF is the native convention there.
+*.ps1 text eol=crlf
+
+# Binary deliverables - never touch these.
+*.pdf  binary
+*.xlsx binary
+*.png  binary
+*.mp4  binary

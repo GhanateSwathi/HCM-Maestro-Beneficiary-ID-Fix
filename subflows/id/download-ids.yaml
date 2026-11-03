@@ -1,0 +1,56 @@
+appId: ${HCM_APP_ID}
+name: download-ids
+---
+# From the home screen: Beneficiary IDs -> Download Beneficiary IDs -> wait
+# for Download Completed -> Close -> Back to home. If the server answers
+# "Limit exceeded", taps Re-Fetch IDs (the plan's P4 / X8 wording) and waits
+# again. Logs which of the two happened, for P4's expected result.
+#
+# Read off the emulator, 2026-11-02, with 0 IDs: the dialog "Download
+# Beneficiary IDs" with a progress bar, "Download Completed" and "600/600",
+# and Close. The "Limit exceeded" dialog has not been seen yet: matched by
+# its Re-Fetch IDs button.
+- tapOn:
+    text: "Beneficiary IDs"
+    below: "Registration & Delivery"
+    label: "Open Beneficiary IDs"
+- extendedWaitUntil:
+    visible: "Download Beneficiary IDs"
+    timeout: 15000
+    label: "Beneficiary IDs opens"
+- tapOn:
+    text: "Download Beneficiary IDs"
+    below: "Total beneficiary IDs"
+    label: "Download Beneficiary IDs"
+- extendedWaitUntil:
+    visible: "Download Completed|.*Limit exceeded.*|Re-Fetch IDs"
+    timeout: 120000
+    label: "The download finishes or hits the limit"
+- takeScreenshot: artifacts/download-ids
+- evalScript: ${output.refetched = false}
+- runFlow:
+    when:
+      visible: "Re-Fetch IDs"
+    commands:
+      - evalScript: ${output.refetched = true}
+      - tapOn:
+          text: "Re-Fetch IDs"
+          label: "Re-Fetch IDs"
+      - extendedWaitUntil:
+          visible: "Download Completed"
+          timeout: 120000
+          label: "The re-fetch finishes"
+      - takeScreenshot: artifacts/refetch-ids
+- evalScript: "${console.log('NOTE|Download Beneficiary IDs - ' + (output.refetched ? 'Limit exceeded, tapped Re-Fetch IDs' : 'new download'))}"
+- tapOn:
+    text: "Close"
+    below: "Download Completed"
+    label: "Close"
+- tapOn:
+    text: "Back"
+    above: "Beneficiary IDs"
+    label: "Back to home"
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Back on the home screen"

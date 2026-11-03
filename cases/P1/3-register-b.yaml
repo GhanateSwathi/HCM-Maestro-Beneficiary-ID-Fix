@@ -1,0 +1,32 @@
+appId: ${HCM_APP_ID}
+name: P1 part 3 - register B from the same search screen
+tags:
+  - phase-a
+  - phase-b
+---
+# P1 part 3 (see 1-start.yaml), on the search screen part 2 came back to:
+# register QAID-P1-B from it. Ends on B's Household Overview.
+#
+# Maestro reconnects to the phone between parts 2 and 3. Whether B's form
+# still carried A's ID - the stale screen the case is about - shows in the
+# report's "At Submit" comment, from the app's own log.
+- extendedWaitUntil:
+    visible: "Register New Beneficiary"
+    timeout: 15000
+    label: "Part 2 left the app on Search Beneficiary"
+- runFlow:
+    file: ../../subflows/registration/register-household.yaml
+    env:
+      NAME: QAID-P1-B
+- runFlow:
+    file: ../../subflows/id/read-card.yaml
+    env:
+      PERSON: "QAID-P1-B ${LAST_NAME}"
+      HOUSEHOLD: QAID-P1-B
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: var
+      NAME: P1_ID_B
+      VALUE: ${output.id.last}
+- takeScreenshot: artifacts/p1-b-overview

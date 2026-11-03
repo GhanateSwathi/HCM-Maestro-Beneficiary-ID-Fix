@@ -1,0 +1,82 @@
+appId: ${HCM_APP_ID}
+name: consent-no
+---
+# From Search Beneficiary: NAME -> Register New Beneficiary -> Household
+# Location -> Care giver's consent No with a reason -> Submit -> Ready to
+# Submit? -> Submit -> Back To Search. Ends on Search Beneficiary. Saves a
+# household with no person, so no ID (X4, P1b).
+#
+# Read off the app on the emulator, 2026-11-02 (QAID-FIX-NO): No adds
+# "Enter Reason *"; Submit raises "Ready to Submit?" (Submit / Cancel); the
+# success screen reads "Data recorded successfully" with Back To Search only.
+- tapOn:
+    below: "Search by ID"
+    above: "Register New Beneficiary"
+    index: 0
+    label: "Focus the search field"
+- runFlow:
+    when:
+      notVisible: "Name of the individual"
+    commands:
+      - repeat:
+          times: 30
+          commands:
+            - pressKey: Remote Dpad Right
+      - eraseText: 40
+- inputText: ${NAME}
+- runFlow: ../common/close-keyboard.yaml
+- tapOn:
+    text: "Register New Beneficiary"
+    label: "Register New Beneficiary"
+- extendedWaitUntil:
+    visible:
+      text: "\\d+(\\.\\d+)? meters"
+      below: "Geo-coordinates \\*"
+    timeout: 60000
+    label: "The location is captured"
+- tapOn:
+    text: "Next"
+    label: "Next"
+- extendedWaitUntil:
+    visible: "Care giver's consent"
+    timeout: 15000
+    label: "Care giver's consent opens"
+- tapOn:
+    leftOf: "No"
+    below: "Yes"
+    label: "Consent - No"
+- extendedWaitUntil:
+    visible: "Enter Reason \\*"
+    timeout: 10000
+    label: "The reason field appears"
+- tapOn:
+    below: "Enter Reason \\*"
+    above: "version.*"
+    index: 0
+    label: "Focus the reason"
+- inputText: "QA test - consent refused"
+- runFlow: ../common/close-keyboard.yaml
+- tapOn:
+    text: "Submit"
+    below: "Care giver's consent"
+    label: "Submit the consent"
+- extendedWaitUntil:
+    visible: "Ready to Submit.*"
+    timeout: 15000
+    label: "Ready to Submit?"
+- tapOn:
+    text: "Submit"
+    below: "Ready to Submit.*"
+    label: "Confirm"
+- extendedWaitUntil:
+    visible: "Data recorded successfully"
+    timeout: 30000
+    label: "Saved"
+- takeScreenshot: artifacts/consent-no-${NAME}
+- tapOn:
+    text: "Back To Search"
+    label: "Back To Search"
+- extendedWaitUntil:
+    visible: "Register New Beneficiary"
+    timeout: 15000
+    label: "Back on Search Beneficiary"

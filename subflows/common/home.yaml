@@ -1,0 +1,68 @@
+appId: ${HCM_APP_ID}
+name: home
+---
+# From the signed-in app to the home screen. The app asks for the boundary
+# again after every restart, signed in or not.
+#
+# Read off the app as dis-qa-oct29, 2026-10-30: "Health Facility *" (one
+# option, Fangwani Health Clinic) and "Community *", a multi-select of 13
+# villages that shows "1 Selected" and a chip once one is ticked; Submit is
+# disabled until both are set. Submit then reports the boundary's records:
+# "No data found!" (Go Back / Go To Home Screen) for Rigan Ori that day, or -
+# while the phone holds records not yet synced - "Pending Records" ("Please
+# sync up your device and then proceed with the Downloading of data", Go To
+# Home Screen only).
+
+# A run that failed on the dialog leaves it up, over the boundary form - the
+# form is then not matched at all - so answer a leftover dialog first. The
+# same goes for the no-connection dialog (offline cases).
+#
+# First wait until one of those screens has drawn: on the software-rendered
+# emulator the boundary form can take seconds after the app is up, and a
+# check made before it drew skipped the form and then waited in vain for
+# home (P3, 2026-11-02 16:45).
+- extendedWaitUntil:
+    visible: "Health Facility \\*|Registration & Delivery|No data found!|Pending Records|Data found!|Failed to check data.*|CORE_COMMON_CONNECTION_LABEL"
+    timeout: 60000
+    label: "The boundary form, a dialog or home has drawn"
+- runFlow: connection-dialog.yaml
+- runFlow: boundary-dialog.yaml
+
+- runFlow:
+    when:
+      visible: "Health Facility \\*"
+    commands:
+      - tapOn:
+          below: "Health Facility \\*"
+          above: "Community \\*"
+          label: "Open Health Facility"
+      - tapOn:
+          text: ${HEALTH_FACILITY}
+          label: "Pick HEALTH_FACILITY"
+      - tapOn:
+          below: "Community \\*"
+          above: "Submit"
+          index: 0
+          label: "Open Community"
+      - tapOn:
+          text: ${REGISTRATION_VILLAGE}
+          label: "Tick REGISTRATION_VILLAGE"
+      # The list stays open over the form; its own field closes it.
+      - tapOn:
+          below: "Community \\*"
+          above: ${REGISTRATION_VILLAGE}
+          index: 0
+          label: "Close the Community list"
+      - tapOn:
+          text: "Submit"
+          label: "Submit the boundary"
+      - extendedWaitUntil:
+          visible: "No data found!|Pending Records|Data found!|Failed to check data.*|Registration & Delivery"
+          timeout: 60000
+          label: "The boundary's records are checked"
+      - runFlow: boundary-dialog.yaml
+
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 60000
+    label: "On the home screen"

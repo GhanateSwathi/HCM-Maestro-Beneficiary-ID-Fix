@@ -1,0 +1,22 @@
+appId: ${HCM_APP_ID}
+name: D6 part 3 - log out, sign in again, N available
+tags:
+  - phase-a
+---
+# D6 part 3 (see 1-start.yaml), from the home screen: side menu -> Logout ->
+# sign in as the same CDD (app data kept) -> N available. Ends on the home
+# screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 2 left the app on the home screen"
+- runFlow: ../../subflows/common/logout.yaml
+- runFlow: ../../subflows/common/sign-in-cdd.yaml
+- runFlow: ../../subflows/common/home.yaml
+- runFlow: ../../subflows/id/read-available.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${Number(D6_N_A) == output.id.available}
+      TEXT: "${'N available unchanged by logging out and back in (A still counted as used) - ' + D6_N_A + ' to ' + output.id.available}"

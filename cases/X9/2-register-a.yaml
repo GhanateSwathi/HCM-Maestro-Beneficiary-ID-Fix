@@ -1,0 +1,19 @@
+appId: ${HCM_APP_ID}
+name: X9 part 2 - device 1 registers A and syncs
+tags:
+  - phase-a
+---
+# X9 part 2 (see 1-start.yaml), device 1, from the home screen. Ends on the
+# home screen with A synced.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 1 left device 1 on the home screen"
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-X9-A
+      KEY: X9_ID_A
+- runFlow: ../../subflows/common/go-home.yaml
+- runFlow: ../../subflows/common/sync-data.yaml

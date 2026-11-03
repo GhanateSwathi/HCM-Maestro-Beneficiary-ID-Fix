@@ -1,0 +1,35 @@
+appId: ${HCM_APP_ID}
+name: X3 part 6 - the ID check
+tags:
+  - phase-a
+---
+# X3 part 6 (see 1-start.yaml), from the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 5 left the app on the home screen"
+- runFlow: ../../subflows/id/read-available.yaml
+- evalScript: ${output.n1 = output.id.available}
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${String(X3_ID_A).length == 12 && !/\D/.test(X3_ID_A)}
+      TEXT: "${'A has a 12-digit ID - ' + X3_ID_A}"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${Number(X3_N_KILL) - output.n1 == 1}
+      TEXT: "${'N available exactly 1 lower after the real registration - ' + X3_N_KILL + ' to ' + output.n1}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${X3_ID_A}
+      HEAD: "QAID-X3-A ${LAST_NAME}"
+- runFlow:
+    when:
+      true: ${output.id.failed}
+    file: ../../subflows/common/fail.yaml
+    env:
+      MESSAGE: "${'X3 failed - ' + output.id.failed}"

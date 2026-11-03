@@ -1,0 +1,27 @@
+appId: ${HCM_APP_ID}
+name: X1 part 3 - Add Member M to H1 (X2 - the Acknowledgement's ID)
+tags:
+  - phase-a
+  - phase-b
+---
+# X1 part 3 (see 1-start.yaml), on H1's Household Overview: Add Members ->
+# QAID-X1-M -> Acknowledgement (its ID) -> View Household Details (the
+# card's ID). Ends on the home screen.
+- extendedWaitUntil:
+    visible: "QAID-FIX-E1 ${LAST_NAME}"
+    timeout: 15000
+    label: "Part 2 left the app on H1's Household Overview"
+- runFlow:
+    file: ../../subflows/registration/add-member-and-read.yaml
+    env:
+      NAME: QAID-X1-M
+      HOUSEHOLD: QAID-FIX-E1
+      KEY: X1_ID_M
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      CASE: X2
+      ACTION: check
+      OK: ${String(output.id.ack) == String(output.id.last)}
+      TEXT: "${'The Acknowledgement shows the ID saved on the card - Acknowledgement ' + output.id.ack + ', card ' + output.id.last}"
+- runFlow: ../../subflows/common/go-home.yaml

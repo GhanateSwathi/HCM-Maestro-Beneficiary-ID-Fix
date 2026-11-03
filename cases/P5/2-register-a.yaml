@@ -1,0 +1,23 @@
+appId: ${HCM_APP_ID}
+name: P5 part 2 - household A and member A1
+tags:
+  - phase-a
+---
+# P5 part 2 (see 1-start.yaml), from the home screen. Ends on A's Household
+# Overview.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 1 left the app on the home screen"
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-P5-A
+      KEY: P5_ID_A
+- runFlow:
+    file: ../../subflows/registration/add-member-and-read.yaml
+    env:
+      NAME: QAID-P5-A1
+      HOUSEHOLD: QAID-P5-A
+      KEY: P5_ID_A1

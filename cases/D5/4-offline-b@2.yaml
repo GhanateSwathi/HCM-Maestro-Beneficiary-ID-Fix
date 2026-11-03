@@ -1,0 +1,19 @@
+appId: ${HCM_APP_ID}
+name: D5 part 4 - device 2 offline, registers B
+tags:
+  - phase-a
+---
+# D5 part 4 (see 1-start.yaml), device 2, from the home screen: airplane mode
+# on -> QAID-D5-B. Ends on the home screen, still offline.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 2 left device 2 on the home screen"
+- setAirplaneMode: enabled
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-D5-B
+      KEY: D5_ID_B
+- runFlow: ../../subflows/common/go-home.yaml

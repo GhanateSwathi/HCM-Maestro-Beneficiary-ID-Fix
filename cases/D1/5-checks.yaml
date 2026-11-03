@@ -1,0 +1,22 @@
+appId: ${HCM_APP_ID}
+name: D1 part 5 - N available and five different IDs
+tags:
+  - phase-a
+---
+# D1 part 5 (see 1-start.yaml), from the home screen. Ends on the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 4 left the app on the home screen"
+- runFlow: ../../subflows/id/read-available.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${Number(N0) - output.id.available == 5}
+      TEXT: "${'N available drops by exactly 5 - ' + N0 + ' to ' + output.id.available}"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: distinct
+      PEOPLE: "A=${D1_ID_A},B=${D1_ID_B},C=${D1_ID_C},D=${D1_ID_D},E=${D1_ID_E}"

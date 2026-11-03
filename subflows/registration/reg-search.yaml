@@ -1,0 +1,87 @@
+appId: ${HCM_APP_ID}
+name: reg-search
+---
+# From Search Beneficiary: NAME as the search text -> Register New
+# Beneficiary. Ends on Household Location.
+#
+# ON_POPUP says what to do with the Low Beneficiary IDs popup: unset, it
+# fails the flow (IDs are on the phone, so the popup is the bug P3 looks
+# for); "skip" taps Skip (P6).
+#
+# Whatever the search field holds is replaced: P1 and D1 come back to a
+# search screen that may still show the last name typed. A tap drops the
+# cursor anywhere in the text and eraseText deletes only before it: move to
+# the end first. An empty field shows its hint, and skips the 30 key presses
+# (about 15 s).
+- tapOn:
+    below: "Search by ID"
+    above: "Register New Beneficiary"
+    index: 0
+    label: "Focus the search field"
+- runFlow:
+    when:
+      notVisible: "Name of the individual"
+    commands:
+      - repeat:
+          times: 30
+          commands:
+            - pressKey: Remote Dpad Right
+      - eraseText: 40
+- inputText: ${NAME}
+- runFlow: ../common/close-keyboard.yaml
+- assertVisible:
+    text: ${NAME}
+    below: "Search by ID"
+    label: "The search text is NAME"
+- tapOn:
+    text: "Register New Beneficiary"
+    label: "Register New Beneficiary"
+- extendedWaitUntil:
+    visible: "Low Beneficiary IDs|Household Location"
+    timeout: 15000
+    label: "Register New Beneficiary opens the popup or the form"
+- runFlow:
+    when:
+      visible: "Low Beneficiary IDs"
+    commands:
+      - takeScreenshot: artifacts/low-id-popup-${NAME}
+      # Skip is the old config's (Phase A). On 2026-11-02 18:53 (P6, 0 IDs)
+      # the popup offered only Download - "Please download beneficiary IDs
+      # to register a new household" - as the new config should. A
+      # case that needs Skip is then blocked, not failed.
+      - runFlow:
+          when:
+            true: ${typeof ON_POPUP != 'undefined' && ON_POPUP == 'skip'}
+            notVisible: "Skip"
+          commands:
+            - runScript:
+                file: ../id/id.js
+                env:
+                  ACTION: blocked
+                  TEXT: "${'The Low Beneficiary IDs popup for ' + NAME + ' offers only Download, no Skip (Please download beneficiary IDs to register a new household) - the Skip this case needs is not there. Is the new config (Skip hidden at 0 IDs) already on UAT'}"
+            - runFlow:
+                file: ../common/fail.yaml
+                env:
+                  MESSAGE: ${output.id.failure}
+      - runFlow:
+          when:
+            true: ${typeof ON_POPUP != 'undefined' && ON_POPUP == 'skip'}
+          commands:
+            - evalScript: "${console.log('NOTE|Register New Beneficiary for ' + NAME + ' raised the Low Beneficiary IDs popup; tapped Skip')}"
+            - tapOn:
+                text: "Skip"
+                below: "Low Beneficiary IDs"
+                label: "Skip"
+            - extendedWaitUntil:
+                visible: "Household Location"
+                timeout: 15000
+                label: "Skip opens the form"
+      - runFlow:
+          when:
+            true: ${typeof ON_POPUP == 'undefined' || ON_POPUP != 'skip'}
+          commands:
+            - evalScript: "${console.log('CHECK|FAIL|Register New Beneficiary for ' + NAME + ' raised the Low Beneficiary IDs popup with IDs on the phone')}"
+            - runFlow:
+                file: ../common/fail.yaml
+                env:
+                  MESSAGE: "${'Low Beneficiary IDs popup shown for ' + NAME + ' although IDs were on the phone.'}"

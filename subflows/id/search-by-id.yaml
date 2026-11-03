@@ -1,0 +1,57 @@
+appId: ${HCM_APP_ID}
+name: search-by-id
+---
+# The ID check's step 4, from the home screen: Search Beneficiary -> Search
+# by ID on -> all 12 digits of ID. Exactly one household must be found, and
+# it must be HEAD's (the head's full name) - a member's ID finds its head's
+# household. Logs a CHECK line either way and returns to the home screen.
+#
+# Read off the app as dis-qa-oct29, 2026-10-30, with the fixture's ID: one
+# card per household found - the head's name, "Open", then a Beneficiary /
+# Age / Gender table. Register New Beneficiary is disabled in ID mode. So a
+# household is an "Open" button, and a second one means a second household.
+- runFlow: ../registration/open-search.yaml
+- runFlow: ../registration/search-by-id-on.yaml
+- tapOn:
+    below: "Search by ID"
+    above: "Register New Beneficiary"
+    index: 0
+    label: "Focus the search field"
+- inputText: ${ID}
+- runFlow: ../common/close-keyboard.yaml
+- extendedWaitUntil:
+    visible: "Open"
+    timeout: 15000
+    optional: true
+    label: "A household is found"
+- evalScript: ${output.found = 0}
+- runFlow:
+    when:
+      visible: "Open"
+    commands:
+      - evalScript: ${output.found = 1}
+- runFlow:
+    when:
+      visible:
+        text: "Open"
+        index: 1
+    commands:
+      - evalScript: ${output.found = 2}
+- evalScript: ${output.rightHousehold = false}
+- runFlow:
+    when:
+      visible:
+        text: ${HEAD}
+        leftOf: "Open"
+    commands:
+      - evalScript: ${output.rightHousehold = true}
+- takeScreenshot: artifacts/search-${ID}
+- runScript:
+    file: id.js
+    env:
+      ACTION: check
+      # X1 runs X2's searches with CASE: X2 (see id.js).
+      CASE: "${typeof CASE == 'undefined' ? '' : CASE}"
+      OK: ${output.found == 1 && output.rightHousehold}
+      TEXT: "${'Search by ID ' + ID + ' - expected only ' + HEAD + ' household, found ' + (output.found == 0 ? 'none' : (output.found == 1 ? (output.rightHousehold ? 'it' : 'a different household') : 'more than one household'))}"
+- runFlow: ../common/go-home.yaml

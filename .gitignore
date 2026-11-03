@@ -1,0 +1,15 @@
+# Credentials and environment-specific values. Never commit .env - only the
+# .env.example template is tracked.
+.env
+*.env
+!.env.example
+
+# Screenshots and run output
+artifacts/
+.maestro/
+*.mp4
+*.png
+
+# OS
+.DS_Store
+Thumbs.db

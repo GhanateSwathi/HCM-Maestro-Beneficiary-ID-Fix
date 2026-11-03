@@ -1,0 +1,24 @@
+appId: ${HCM_APP_ID}
+name: D1 part 2 - A, system Back, B
+tags:
+  - phase-a
+---
+# D1 part 2 (see 1-start.yaml), from the home screen. Ends on B's Household
+# Overview.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 1 left the app on the home screen"
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-D1-A
+      KEY: D1_ID_A
+- runFlow: ../../subflows/registration/to-search.yaml
+- takeScreenshot: artifacts/d1-back-on-search
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-D1-B
+      KEY: D1_ID_B

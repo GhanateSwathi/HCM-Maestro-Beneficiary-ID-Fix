@@ -1,0 +1,18 @@
+appId: ${HCM_APP_ID}
+name: X8 part 4 - register B
+tags:
+  - phase-a
+---
+# X8 part 4 (see 1-start.yaml), from the home screen. Ends on the home
+# screen. B's ID reaches part 5 as a VAR, where it is checked.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 3 left the app on the home screen"
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-X8-B
+      KEY: X8_ID_B
+- runFlow: ../../subflows/common/go-home.yaml

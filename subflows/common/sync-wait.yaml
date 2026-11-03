@@ -1,0 +1,28 @@
+appId: ${HCM_APP_ID}
+name: sync-wait
+---
+# Called by sync-data.yaml after Sync Data: waits, up to 3 minutes, until
+# the sync failed or nothing is left to sync. The failure dialog ("Sync Up
+# Failed", Close / Retry) is modal - the home screen's "Data Unsynced" card
+# drops out of the hierarchy while it is up - so both end the wait. A
+# success dialog, if the build shows one, is closed.
+- waitForAnimationToEnd:
+    timeout: 5000
+- repeat:
+    times: 36
+    while:
+      visible: "Data Unsynced"
+    commands:
+      - extendedWaitUntil:
+          notVisible: "Data Unsynced"
+          timeout: 5000
+          optional: true
+          label: "Syncing..."
+- runFlow:
+    when:
+      visible: "Close"
+      notVisible: "Retry"
+    commands:
+      - tapOn:
+          text: "Close"
+          label: "Close the sync result"

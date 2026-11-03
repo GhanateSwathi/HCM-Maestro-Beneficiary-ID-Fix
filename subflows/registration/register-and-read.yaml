@@ -1,0 +1,21 @@
+appId: ${HCM_APP_ID}
+name: register-and-read
+---
+# From Search Beneficiary: register-household.yaml with NAME as the head,
+# then the ID check's first step - the head's ID off their card - passed to
+# the case's later parts as VAR KEY. Ends on Household Overview.
+- runFlow:
+    file: register-household.yaml
+    env:
+      NAME: ${NAME}
+- runFlow:
+    file: ../id/read-card.yaml
+    env:
+      PERSON: "${NAME} ${LAST_NAME}"
+      HOUSEHOLD: ${NAME}
+- runScript:
+    file: ../id/id.js
+    env:
+      ACTION: var
+      NAME: ${KEY}
+      VALUE: ${output.id.last}

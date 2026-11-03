@@ -1,0 +1,56 @@
+appId: ${HCM_APP_ID}
+name: P1b part 5 - 2M's card, N available, six different IDs
+tags:
+  - phase-a
+---
+# P1b part 5 (see 1-start.yaml), from the home screen: 2M's ID off its card
+# (the ledger row), then N available and the IDs. Ends on the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 4 left the app on the home screen"
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/open-household.yaml
+    env:
+      HOUSEHOLD: QAID-P1b-2A
+- scrollUntilVisible:
+    element: "QAID-P1b-2M ${LAST_NAME}"
+    direction: DOWN
+    timeout: 10000
+    label: "Bring 2M's card into view"
+- runFlow:
+    file: ../../subflows/id/read-card.yaml
+    env:
+      PERSON: "QAID-P1b-2M ${LAST_NAME}"
+      HOUSEHOLD: QAID-P1b-2A
+- evalScript: ${output.id2m = output.id.last}
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: var
+      NAME: P1B_ID_2M
+      VALUE: ${output.id2m}
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: note
+      TEXT: "${'2M - Acknowledgement ' + P1B_ACK_2M + ', card ' + output.id2m + (String(P1B_ACK_2M) == String(output.id2m) ? ' (the same)' : ' (DIFFERENT - see X2)')}"
+- runFlow: ../../subflows/common/go-home.yaml
+- runFlow: ../../subflows/id/read-available.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${Number(N0) - output.id.available == 6}
+      TEXT: "${'N available drops by exactly 6 (1A, 1B, 2A, 2M, 2B, 3B; 3A has consent No) - ' + N0 + ' to ' + output.id.available}"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: distinct
+      PEOPLE: "1A=${P1B_ID_1A},1B=${P1B_ID_1B},2A=${P1B_ID_2A},2M=${output.id2m},2B=${P1B_ID_2B},3B=${P1B_ID_3B}"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: note
+      TEXT: "Way 4 (a dose for a child, then Go back from Delivery success) not run - it needs stock issued to the CDD and is left for a manual run"

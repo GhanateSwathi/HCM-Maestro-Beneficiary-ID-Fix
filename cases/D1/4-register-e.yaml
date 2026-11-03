@@ -1,0 +1,20 @@
+appId: ${HCM_APP_ID}
+name: D1 part 4 - system Back, E
+tags:
+  - phase-a
+---
+# D1 part 4 (see 1-start.yaml), on D's Household Overview. Ends on the home
+# screen. The checks are in part 5: E's ID reaches a later part only (as a
+# VAR) - on 2026-11-02 13:39 the checks ran here and saw E's ID as
+# "undefined".
+- extendedWaitUntil:
+    visible: "QAID-D1-D ${LAST_NAME}"
+    timeout: 15000
+    label: "Part 3 left the app on D's Household Overview"
+- runFlow: ../../subflows/registration/to-search.yaml
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-D1-E
+      KEY: D1_ID_E
+- runFlow: ../../subflows/common/go-home.yaml

@@ -1,0 +1,95 @@
+appId: ${HCM_APP_ID}
+name: login
+---
+# Signs in whoever the caller hands over as LOGIN_USER_ID / LOGIN_PASSWORD -
+# see subflows/sign-in/ for one caller per role. Those names must never appear
+# in .env, or every role would silently sign in as the same user.
+
+# The form is Flutter-rendered: the text fields carry no resource-id, text or
+# content-desc of their own, so each is addressed via the label above it.
+
+# The screen paints before the Flutter form can accept input, and inputText
+# silently drops any character typed into that gap - a 14-character user id has
+# landed as a 6-character fragment, losing characters from both ends, which then
+# looks like a credentials failure rather than a race.
+# Only the first field touched after the screen appears is affected; by the
+# second the form is warm. Verified: 8 consecutive retypes on a settled screen
+# all landed in full.
+- waitForAnimationToEnd:
+    timeout: 5000
+    label: "Let the login form settle before typing"
+
+# Type, verify what actually landed, and retype if characters went missing.
+# eraseText clears the partial value left by a failed attempt.
+# Note: the assert treats the user id as a full-string regex, so a value
+# containing regex metacharacters would need escaping here.
+# Each field is fenced between its own label and the next row: the keyboard
+# is its own window, its keys are in the hierarchy and clickable, and they
+# sit "below" every label - Maestro prefers clickable matches, so an unfenced
+# "below Password" tapped a key once the keyboard was up.
+- retry:
+    maxRetries: 3
+    commands:
+      - tapOn:
+          below: "User ID.*"
+          above: "Password.*"
+          waitToSettleTimeoutMs: 1000
+          label: "Focus the User ID field"
+      - eraseText
+      - inputText: ${LOGIN_USER_ID}
+      - assertVisible:
+          text: ${LOGIN_USER_ID}
+          label: "User ID landed in full"
+
+# No hideKeyboard anywhere in this login. On Android it is a Back press, and
+# if the keyboard is already on its way down, Back reaches the app instead -
+# which exits from its login screen ("VM exiting with result code 0"). Seen
+# twice on 2026-10-19 after an emulator reboot, the second time with the
+# keyboard's keys still in the hierarchy (the device log reported it
+# PHASE_CLIENT_ALREADY_HIDDEN), so no "is it up?" guard makes it safe.
+# Nothing here needs it gone: on the Pixel 9 Pro XL the whole form - down to
+# the Login button, y < 1170 - sits above the keyboard (top row at y 1984). On
+# a short screen the keyboard could cover Password or Login; scroll there,
+# never Back.
+
+# The password is masked, so what landed cannot be asserted the way the user id
+# is above. It has never been the field that drops characters, but it still gets
+# the settle wait and an eraseText so a retry upstream cannot double up on it.
+#
+# Fenced between its label and the Login button, which keeps the keyboard's
+# keys out (they sit below Login). Tab does not move focus here - the
+# keyboard takes it.
+- tapOn:
+    below: "Password.*"
+    above:
+      text: "Login"
+      below: "Password.*"
+    waitToSettleTimeoutMs: 1000
+    label: "Focus the Password field"
+# Never type the password until its own field has focus. When a tap missed
+# (2026-10-19), focus stayed in User ID and the password was typed there - in
+# clear text, on screen and in the failure screenshots.
+- assertVisible:
+    focused: true
+    below: "Password.*"
+    above:
+      text: "Login"
+      below: "Password.*"
+    label: "The Password field has focus"
+- eraseText
+- inputText: ${LOGIN_PASSWORD}
+
+# "Login" also matches the screen heading, so anchor on the one below the form.
+- tapOn:
+    text: "Login"
+    below: "Password.*"
+    label: "Submit the login form"
+
+# A rejected login leaves the form up. Without this, bad credentials would only
+# surface as the caller's sync wait timing out five minutes later. The link is
+# known to be on screen when Login is tapped, so this notVisible wait cannot
+# pass vacuously.
+- extendedWaitUntil:
+    notVisible: "Forgot Password\\?"
+    timeout: 60000
+    label: "Login accepted - the app left the login screen"

@@ -1,0 +1,22 @@
+appId: ${HCM_APP_ID}
+name: P3 part 2 - tries 1 to 3
+tags:
+  - phase-a
+---
+# P3 part 2 (see 1-start.yaml), from the home screen. Ends on the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 1 left the app on the home screen"
+- runFlow:
+    file: ../../subflows/cases/p3-try.yaml
+    env:
+      TRY: 1
+- runFlow:
+    file: ../../subflows/cases/p3-try.yaml
+    env:
+      TRY: 2
+- runFlow:
+    file: ../../subflows/cases/p3-try.yaml
+    env:
+      TRY: 3

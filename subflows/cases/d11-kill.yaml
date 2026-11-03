@@ -1,0 +1,29 @@
+appId: ${HCM_APP_ID}
+name: d11-kill
+---
+# D11 (cases/D11), round R, from the home screen: N available -> QAID-D11-<R>A
+# up to the filled-in head's form -> Submit and, without waiting for
+# anything, force-stop the app (the plan: swipe it away from Recent apps).
+# Passes N available on as VAR D11_N_<R>. Ends with the app stopped.
+- runFlow: ../id/read-available.yaml
+- runScript:
+    file: ../id/id.js
+    env:
+      ACTION: var
+      NAME: ${'D11_N_' + R}
+      VALUE: ${output.id.available}
+- runFlow: ../registration/open-search.yaml
+- runFlow:
+    file: ../registration/reg-start.yaml
+    env:
+      NAME: ${'QAID-D11-' + R + 'A'}
+- runFlow:
+    file: ../registration/reg-details.yaml
+    env:
+      NAME: ${'QAID-D11-' + R + 'A'}
+- tapOn:
+    text: "Submit"
+    waitToSettleTimeoutMs: 0
+    retryTapIfNoChange: false
+    label: "Submit"
+- stopApp

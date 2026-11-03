@@ -1,0 +1,18 @@
+appId: ${HCM_APP_ID}
+name: P3 part 3 - tries 4 and 5
+tags:
+  - phase-a
+---
+# P3 part 3 (see 1-start.yaml).
+# The tries leave the app wherever Back took it (see p3-try.yaml): start it
+# again, which a try does anyway.
+- runFlow: ../../subflows/common/sign-in-cdd.yaml
+- runFlow: ../../subflows/common/home.yaml
+- runFlow:
+    file: ../../subflows/cases/p3-try.yaml
+    env:
+      TRY: 4
+- runFlow:
+    file: ../../subflows/cases/p3-try.yaml
+    env:
+      TRY: 5

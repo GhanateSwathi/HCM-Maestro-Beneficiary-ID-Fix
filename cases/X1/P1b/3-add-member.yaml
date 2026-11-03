@@ -1,0 +1,42 @@
+appId: ${HCM_APP_ID}
+name: P1b part 3 - way 2, Add Member then Back To Search
+tags:
+  - phase-a
+---
+# P1b part 3 (see 1-start.yaml), from the home screen: 2A -> Add Members
+# 2M -> Back To Search on its Acknowledgement -> 2B. M's card is read in
+# part 5. Ends on the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 2 left the app on the home screen"
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-P1b-2A
+      KEY: P1B_ID_2A
+- runFlow:
+    file: ../../subflows/registration/add-member.yaml
+    env:
+      NAME: QAID-P1b-2M
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: var
+      NAME: P1B_ACK_2M
+      VALUE: ${output.id.ack}
+- tapOn:
+    text: "Back To Search"
+    label: "Back To Search"
+- extendedWaitUntil:
+    visible: "Register New Beneficiary"
+    timeout: 15000
+    label: "Back on a search screen"
+- takeScreenshot: artifacts/p1b-way2-search
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-P1b-2B
+      KEY: P1B_ID_2B
+- runFlow: ../../subflows/common/go-home.yaml

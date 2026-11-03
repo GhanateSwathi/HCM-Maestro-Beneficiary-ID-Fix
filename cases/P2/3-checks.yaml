@@ -1,0 +1,35 @@
+appId: ${HCM_APP_ID}
+name: P2 part 3 - the ID check
+tags:
+  - phase-a
+---
+# P2 part 3 (see 1-start.yaml), from the home screen.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 2 left the app on the home screen"
+- runFlow: ../../subflows/id/read-available.yaml
+- evalScript: ${output.n1 = output.id.available}
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${String(P2_ID_A).length == 12 && !/\D/.test(P2_ID_A)}
+      TEXT: "${'A has a 12-digit ID - ' + P2_ID_A}"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${Number(N0) - output.n1 == 1}
+      TEXT: "${'N available drops by exactly 1 - ' + N0 + ' to ' + output.n1}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${P2_ID_A}
+      HEAD: "QAID-P2-A ${LAST_NAME}"
+- runFlow:
+    when:
+      true: ${output.id.failed}
+    file: ../../subflows/common/fail.yaml
+    env:
+      MESSAGE: "${'P2 failed - ' + output.id.failed}"

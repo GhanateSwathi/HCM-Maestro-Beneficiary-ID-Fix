@@ -1,0 +1,69 @@
+appId: ${HCM_APP_ID}
+name: X1 part 2 - H1's Overview, Back link, register H2, back to H1
+tags:
+  - phase-a
+  - phase-b
+---
+# X1 part 2 (see 1-start.yaml), from the home screen. Ends on H1's
+# Household Overview.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 1 left the app on the home screen"
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/open-household.yaml
+    env:
+      HOUSEHOLD: QAID-FIX-E1
+- takeScreenshot: artifacts/x1-h1-overview
+- tapOn:
+    text: "Back"
+    above: "Household Overview"
+    label: "The Overview's Back link"
+- extendedWaitUntil:
+    visible: "Register New Beneficiary"
+    timeout: 15000
+    label: "A search screen opens"
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-X1-H2
+      KEY: X1_ID_H2
+- back
+- waitForAnimationToEnd:
+    timeout: 3000
+- back
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: artifacts/x1-after-two-backs
+- evalScript: ${output.stale = false}
+- runFlow:
+    when:
+      visible: "QAID-FIX-E1 ${LAST_NAME}"
+    commands:
+      - evalScript: ${output.stale = true}
+- runFlow:
+    when:
+      true: ${output.stale}
+    commands:
+      - runScript:
+          file: ../../subflows/id/id.js
+          env:
+            CASE: ""
+            ACTION: note
+            TEXT: "Two system Backs from H2's Overview reached H1's Overview, which was open before H2 was registered (the plan's stale screen)"
+- runFlow:
+    when:
+      true: ${!output.stale}
+    commands:
+      - runScript:
+          file: ../../subflows/id/id.js
+          env:
+            CASE: ""
+            ACTION: note
+            TEXT: "NOT REPRODUCIBLE on this build - two system Backs from H2's Overview did not reach H1's Overview: the Overview's Back link drops it, so the stale Overview of the plan does not exist. H1 was opened afresh for M"
+      - runFlow: ../../subflows/registration/to-search.yaml
+      - runFlow:
+          file: ../../subflows/registration/open-household.yaml
+          env:
+            HOUSEHOLD: QAID-FIX-E1

@@ -1,0 +1,23 @@
+appId: ${HCM_APP_ID}
+name: P6 part 5 - all five saved with a UUID
+tags:
+  - phase-a
+---
+# P6 part 5 (see 1-sync-and-clear.yaml), from the home screen. read-card.yaml
+# records "UUID" for a card with the "No Beneficiary ID" tag.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 4 left the app on the home screen"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${P6_ID_A == 'UUID' && P6_ID_A1 == 'UUID' && P6_ID_A2 == 'UUID' && P6_ID_A3 == 'UUID' && P6_ID_B == 'UUID'}
+      TEXT: "${'All five show No Beneficiary ID (a UUID, expected in Phase A until the config lands) - A ' + P6_ID_A + ', A1 ' + P6_ID_A1 + ', A2 ' + P6_ID_A2 + ', A3 ' + P6_ID_A3 + ', B ' + P6_ID_B}"
+- runFlow: ../../subflows/id/read-available.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: note
+      TEXT: "${'Beneficiary IDs after P6 - ' + output.id.available + ' available of ' + output.id.total + '. Keep this emulator data for the edit cases of the config phase'}"

@@ -1,0 +1,21 @@
+Case,Name,Phase,Flow,Reallocated
+P1,Register twice from one search screen,"A, B",cases/P1,1
+P1b,Other ways back to search,A,cases/P1b,
+P2,Register button on the older search screen,A,cases/P2,
+P3,Popup before the ID count loads,A,cases/P3,
+P4,Re-download IDs before sync,A,cases/P4,
+P5,Six people in a row,A,cases/P5,
+P6,Skip with an empty pool (old config),A,cases/P6,
+X1,Stale ID on Add Member,"A, B",cases/X1,1
+X2,Acknowledgement shows the saved ID,"A, B",cases/X1,
+X3,Abandoned form uses no ID,A,cases/X3,
+X4,Consent No uses no ID,A,cases/X4,
+X5,Double-tap Submit,A,cases/X5,
+X6,Offline registration,A,cases/X6,
+X8,Clear data after sync,A,cases/X8,
+X9,"Same CDD, two phones, synced","A, C",cases/X9,
+D1,Five heads from one search screen,A,cases/D1,4
+D2,Deep screen stack,A,cases/D2,
+D5,"Same CDD, two phones, unsynced","A, C",cases/D5,
+D6,Log out and back in,A,cases/D6,
+D11,App killed right after Submit,A,cases/D11,

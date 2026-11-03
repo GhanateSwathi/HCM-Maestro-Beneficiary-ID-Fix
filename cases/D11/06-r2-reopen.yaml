@@ -1,0 +1,12 @@
+appId: ${HCM_APP_ID}
+name: D11 part 06 - round 2, open the app - was A saved
+tags:
+  - phase-a
+---
+# D11 round 2 (see 01-start.yaml), with the app stopped. Ends on the home
+# screen.
+- runFlow:
+    file: ../../subflows/cases/d11-reopen.yaml
+    env:
+      R: 2
+      N_BEFORE: ${D11_N_2}

@@ -1,0 +1,31 @@
+appId: ${HCM_APP_ID}
+name: reg-location-consent
+---
+# From Household Location: wait for the location fix -> Next -> Care giver's
+# consent Yes -> Submit. Ends on Household Details (the member count).
+- extendedWaitUntil:
+    visible:
+      text: "\\d+(\\.\\d+)? meters"
+      below: "Geo-coordinates \\*"
+    timeout: 60000
+    label: "The location is captured"
+- tapOn:
+    text: "Next"
+    label: "Next"
+- extendedWaitUntil:
+    visible: "Care giver's consent"
+    timeout: 15000
+    label: "Care giver's consent opens"
+- tapOn:
+    leftOf: "Yes"
+    below: "Did the care giver allow.*"
+    above: "No"
+    label: "Consent - Yes"
+- tapOn:
+    text: "Submit"
+    below: "Care giver's consent"
+    label: "Submit the consent"
+- extendedWaitUntil:
+    visible: "Total household members \\*"
+    timeout: 15000
+    label: "Household Details opens"

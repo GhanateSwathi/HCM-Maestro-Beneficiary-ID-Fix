@@ -1,0 +1,41 @@
+appId: ${HCM_APP_ID}
+name: D2 part 2 - two Back links deep, register A
+tags:
+  - phase-a
+---
+# D2 part 2 (see 1-start.yaml), from the home screen. Ends on A's Household
+# Overview.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 1 left the app on the home screen"
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/open-household.yaml
+    env:
+      HOUSEHOLD: QAID-FIX-E1
+- tapOn:
+    text: "Back"
+    above: "Household Overview"
+    label: "S1's household - Back link (S2)"
+- extendedWaitUntil:
+    visible: "Register New Beneficiary"
+    timeout: 15000
+    label: "S2 opens"
+- runFlow:
+    file: ../../subflows/registration/open-household.yaml
+    env:
+      HOUSEHOLD: QAID-FIX-E2
+- tapOn:
+    text: "Back"
+    above: "Household Overview"
+    label: "S2's household - Back link (S3)"
+- extendedWaitUntil:
+    visible: "Register New Beneficiary"
+    timeout: 15000
+    label: "S3 opens"
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-D2-A
+      KEY: D2_ID_A

@@ -1,0 +1,21 @@
+appId: ${HCM_APP_ID}
+name: D11 part 01 - sign in and note N available
+tags:
+  - phase-a
+---
+# Test plan D11 - app killed right after Submit, three rounds. Each round:
+# QAID-D11-<R>A up to the head's form -> Submit and force-stop the app at
+# once (subflows/cases/d11-kill.yaml) -> open it -> was A saved?
+# (d11-reopen.yaml) -> register QAID-D11-<R>B (d11-b.yaml).
+#
+# Expected: either A is saved with an ID and N available dropped by 1, or
+# nothing is saved and N is unchanged - never A saved while its ID still
+# counts as free; B never gets A's ID; no ID already in the ledger
+# (report.py).
+#
+# VARs per round: D11_N_<R>, D11_N_AFTER_<R>, D11_ID_<R>A (empty when A was
+# not saved), D11_ID_<R>B. Writes three to six households to UAT.
+- runFlow:
+    file: ../../subflows/id/case-start.yaml
+    env:
+      NEED: 6

@@ -1,0 +1,10 @@
+appId: ${HCM_APP_ID}
+name: reg-start
+---
+# The plan's "Register a household", first half (register-household.yaml
+# runs it all): reg-search.yaml (NAME, Register New Beneficiary, the popup)
+# then reg-location-consent.yaml (Household Location, consent Yes). Ends on
+# Household Details (the member count). Saves nothing yet: X3 and D11 stop
+# here or in reg-details.yaml. ON_POPUP as in reg-search.yaml.
+- runFlow: reg-search.yaml
+- runFlow: reg-location-consent.yaml

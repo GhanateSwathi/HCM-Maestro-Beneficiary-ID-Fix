@@ -1,0 +1,25 @@
+appId: ${HCM_APP_ID}
+name: P6 part 3 - members A2 and A3, Skip on each popup
+tags:
+  - phase-a
+---
+# P6 part 3 (see 1-sync-and-clear.yaml), on A's Household Overview. Ends
+# there.
+- extendedWaitUntil:
+    visible: "QAID-P6-A1 ${LAST_NAME}"
+    timeout: 15000
+    label: "Part 2 left the app on A's Household Overview"
+- runFlow:
+    file: ../../subflows/registration/add-member-and-read.yaml
+    env:
+      NAME: QAID-P6-A2
+      HOUSEHOLD: QAID-P6-A
+      KEY: P6_ID_A2
+      ON_POPUP: skip
+- runFlow:
+    file: ../../subflows/registration/add-member-and-read.yaml
+    env:
+      NAME: QAID-P6-A3
+      HOUSEHOLD: QAID-P6-A
+      KEY: P6_ID_A3
+      ON_POPUP: skip

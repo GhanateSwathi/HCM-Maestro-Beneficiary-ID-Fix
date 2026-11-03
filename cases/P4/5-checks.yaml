@@ -1,0 +1,38 @@
+appId: ${HCM_APP_ID}
+name: P4 part 5 - the ID check, then Sync Data
+tags:
+  - phase-a
+---
+# P4 part 5 (see 1-start.yaml), from the home screen. Ends on the home
+# screen with everything synced.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 4 left the app on the home screen"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${Number(P4_N_D) - Number(P4_N_X) == Number(P4_T_D) - Number(P4_T_X)}
+      TEXT: "${'The download made no used ID free again - available ' + P4_N_X + ' to ' + P4_N_D + ', total ' + P4_T_X + ' to ' + P4_T_D + ' (available may rise only with the total)'}"
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: distinct
+      PEOPLE: "X=${P4_ID_X},Y=${P4_ID_Y}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${P4_ID_X}
+      HEAD: "QAID-P4-X ${LAST_NAME}"
+- runFlow:
+    file: ../../subflows/id/search-by-id.yaml
+    env:
+      ID: ${P4_ID_Y}
+      HEAD: "QAID-P4-Y ${LAST_NAME}"
+- runFlow: ../../subflows/common/sync-data.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: note
+      TEXT: "Synced. Each ID once on the server - not checked yet (needs a server search, e.g. Postman)"

@@ -1,0 +1,52 @@
+appId: ${HCM_APP_ID}
+name: P1 part 2 - register A, system Back
+tags:
+  - phase-a
+  - phase-b
+---
+# P1 part 2 (see 1-start.yaml), from the home screen: register QAID-P1-A,
+# then the phone's system Back - not the Back link - to the search screen.
+# Ends there.
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 15000
+    label: "Part 1 left the app on the home screen"
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/register-household.yaml
+    env:
+      NAME: QAID-P1-A
+- runFlow:
+    file: ../../subflows/id/read-card.yaml
+    env:
+      PERSON: "QAID-P1-A ${LAST_NAME}"
+      HOUSEHOLD: QAID-P1-A
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: var
+      NAME: P1_ID_A
+      VALUE: ${output.id.last}
+- takeScreenshot: artifacts/p1-a-overview
+
+- back
+- extendedWaitUntil:
+    visible: "Register New Beneficiary"
+    timeout: 15000
+    label: "Back on Search Beneficiary"
+- takeScreenshot: artifacts/p1-back-on-search
+# The plan expects the same screen "with A's name still typed". On
+# 2026-10-30 (two runs) the field came back empty.
+- evalScript: ${output.kept = false}
+- runFlow:
+    when:
+      visible:
+        text: "QAID-P1-A"
+        below: "Search by ID"
+    commands:
+      - evalScript: ${output.kept = true}
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: note
+      TEXT: "${output.kept ? 'System Back returned to the search screen with A name still typed' : 'System Back returned to the search screen with the field empty (the plan expects A name still typed)'}"

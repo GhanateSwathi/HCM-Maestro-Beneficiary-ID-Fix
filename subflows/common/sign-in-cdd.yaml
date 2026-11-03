@@ -1,0 +1,29 @@
+appId: ${HCM_APP_ID}
+name: sign-in-cdd
+---
+# Signs in as the CDD user when the app is on its login screen; an app that is
+# already signed in is left as it is. Ends on whatever the app shows after
+# login and Allow Permissions.
+- runFlow: launch-app.yaml
+
+# login.yaml signs in whoever it is handed. Its LOGIN_* names are kept out of
+# .env: the runner forwards every .env key as -e, which would replace these.
+- runFlow:
+    when:
+      visible: "User ID.*"
+    file: login.yaml
+    env:
+      LOGIN_USER_ID: ${HCM_CDD_USER_ID}
+      LOGIN_PASSWORD: ${HCM_CDD_PASSWORD}
+
+# Login is followed by a sync that pulls the project down ("Sync in
+# progress"), then Allow Permissions when a permission is missing.
+- extendedWaitUntil:
+    visible: "Allow Permissions|.*Health Facility.*|Registration & Delivery|Beneficiary IDs"
+    timeout: 300000
+    label: "Post-login sync completes"
+- runFlow:
+    when:
+      visible: "Allow Permissions"
+    file: allow-permissions.yaml
+- takeScreenshot: artifacts/cdd-after-sign-in

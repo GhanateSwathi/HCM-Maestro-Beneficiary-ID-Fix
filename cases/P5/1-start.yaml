@@ -1,0 +1,19 @@
+appId: ${HCM_APP_ID}
+name: P5 part 1 - sign in and note N available
+tags:
+  - phase-a
+---
+# Test plan P5 (R0) - six people in a row: household QAID-P5-A (member count
+# 5) with members QAID-P5-A1, A2 and A3, then households QAID-P5-B and
+# QAID-P5-C from the search screen.
+#
+# Expected: six different 12-digit IDs, none already in the ledger
+# (report.py); N available drops by exactly 6; each ID finds only its own
+# household.
+#
+# VARs: N0, P5_ID_A, P5_ID_A1 ... A3 (and their _ACK), P5_ID_B, P5_ID_C.
+# Writes three households and six people to UAT.
+- runFlow:
+    file: ../../subflows/id/case-start.yaml
+    env:
+      NEED: 6

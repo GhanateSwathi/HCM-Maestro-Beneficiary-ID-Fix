@@ -1,0 +1,25 @@
+appId: ${HCM_APP_ID}
+name: P1b part 1 - sign in and note N available
+tags:
+  - phase-a
+---
+# Test plan P1b (RC-03) - other ways back to search: P1 again, with a
+# different way back to the search screen between A and B each time.
+#   1. The Back link at the top of A's Household Overview (QAID-P1b-1A, 1B)
+#   2. Add member 2M to A's household, then Back To Search on its
+#      Acknowledgement (QAID-P1b-2A, 2M, 2B)
+#   3. A with Caregiver consent No - no ID - then Back To Search
+#      (QAID-P1b-3A, 3B)
+#   4. A dose for a child, then Go back from Delivery success - not run: it
+#      needs stock issued to the CDD (noted in the result)
+#
+# Expected: every B gets an ID not already in the ledger (report.py); N
+# available drops by 1 per person created - 6 in all (1A, 1B, 2A, 2M, 2B,
+# 3B); every ID finds only its own household.
+#
+# VARs: N0, P1B_ID_1A ... (see the parts). Writes six households (one with no
+# person) and one member to UAT.
+- runFlow:
+    file: ../../subflows/id/case-start.yaml
+    env:
+      NEED: 6

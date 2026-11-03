@@ -1,0 +1,18 @@
+appId: ${HCM_APP_ID}
+name: connection-dialog
+---
+# Answers the app's no-connection dialog, when one is up. Seen on the
+# emulator, 2026-11-02 15:19, in airplane mode: started offline, the app
+# raised it over the boundary form - and its texts are raw localisation keys
+# (title CORE_COMMON_CONNECTION_LABEL, text CORE_COMMON_CONNECTION_CONTENT,
+# button Core_common_ok; artifacts/findings/). P4 failed at 15:05 when
+# Registration & Delivery was tapped just as airplane mode came on.
+- runFlow:
+    when:
+      visible: "CORE_COMMON_CONNECTION_LABEL|CORE_COMMON_CONNECTION_CONTENT"
+    commands:
+      - tapOn:
+          text: "Core_common_ok|OK|Ok"
+          label: "Close the no-connection dialog"
+      - waitForAnimationToEnd:
+          timeout: 3000

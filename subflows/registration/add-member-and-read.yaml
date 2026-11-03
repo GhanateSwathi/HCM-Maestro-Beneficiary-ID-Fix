@@ -1,0 +1,44 @@
+appId: ${HCM_APP_ID}
+name: add-member-and-read
+---
+# From Household Overview: add-member.yaml with NAME, then View Household
+# Details and the member's ID off their card (HOUSEHOLD names the household
+# for the ledger). The card's ID goes to the later parts as VAR KEY, the
+# Acknowledgement's as VAR <KEY>_ACK. Ends on Household Overview.
+#
+# id.js names a VAR by its NAME env, so the member's name is kept in
+# output.member first and used from there.
+- evalScript: ${output.member = NAME}
+- runFlow:
+    file: add-member.yaml
+    env:
+      NAME: ${output.member}
+- runScript:
+    file: ../id/id.js
+    env:
+      ACTION: var
+      NAME: ${KEY + '_ACK'}
+      VALUE: ${output.id.ack}
+- tapOn:
+    text: "View Household Details"
+    label: "View Household Details"
+- extendedWaitUntil:
+    visible: "Household Overview"
+    timeout: 15000
+    label: "Household Overview opens"
+- scrollUntilVisible:
+    element: "${output.member} ${LAST_NAME}"
+    direction: DOWN
+    timeout: 10000
+    label: "Bring the member's card into view"
+- runFlow:
+    file: ../id/read-card.yaml
+    env:
+      PERSON: "${output.member} ${LAST_NAME}"
+      HOUSEHOLD: ${HOUSEHOLD}
+- runScript:
+    file: ../id/id.js
+    env:
+      ACTION: var
+      NAME: ${KEY}
+      VALUE: ${output.id.last}

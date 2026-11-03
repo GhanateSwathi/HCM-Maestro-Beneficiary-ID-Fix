@@ -1,0 +1,19 @@
+appId: ${HCM_APP_ID}
+name: P3 part 4 - N available after the five tries
+tags:
+  - phase-a
+---
+# P3 part 4 (see 1-start.yaml). Each popup try saved a
+# person (P3_ID_<try>); every other try left its form unsaved.
+# The tries leave the app wherever Back took it (see p3-try.yaml): start it
+# again, which a try does anyway.
+- runFlow: ../../subflows/common/sign-in-cdd.yaml
+- runFlow: ../../subflows/common/home.yaml
+- evalScript: ${output.saved = (typeof P3_ID_1 != 'undefined') + (typeof P3_ID_2 != 'undefined') + (typeof P3_ID_3 != 'undefined') + (typeof P3_ID_4 != 'undefined') + (typeof P3_ID_5 != 'undefined')}
+- runFlow: ../../subflows/id/read-available.yaml
+- runScript:
+    file: ../../subflows/id/id.js
+    env:
+      ACTION: check
+      OK: ${Number(N0) - output.id.available == output.saved}
+      TEXT: "${'N available drops only for people saved (' + output.saved + ') - ' + N0 + ' to ' + output.id.available}"

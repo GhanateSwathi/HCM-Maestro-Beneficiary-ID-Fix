@@ -1,0 +1,13 @@
+appId: ${HCM_APP_ID}
+name: reg-submit
+---
+# "Register a household", last part (see reg-start.yaml): Submit the filled-in
+# head's form. Ends on Household Overview. Creates the household and uses an
+# ID - IRREVERSIBLE.
+- tapOn:
+    text: "Submit"
+    label: "Submit the household"
+- extendedWaitUntil:
+    visible: "Household Overview"
+    timeout: 30000
+    label: "Household Overview opens"

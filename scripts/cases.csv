@@ -1,21 +1,24 @@
-Case,Name,Phase,Flow,Reallocated
-P1,Register twice from one search screen,"A, B",cases/P1,1
-P1b,Other ways back to search,A,cases/P1b,
-P2,Register button on the older search screen,A,cases/P2,
-P3,Popup before the ID count loads,A,cases/P3,
-P4,Re-download IDs before sync,A,cases/P4,
-P5,Six people in a row,A,cases/P5,
-X1,Stale ID on Add Member,"A, B",cases/X1,1
-X2,Acknowledgement shows the saved ID,"A, B",cases/X1,
-X3,Abandoned form uses no ID,A,cases/X3,
-X4,Consent No uses no ID,A,cases/X4,
-X5,Double-tap Submit,A,cases/X5,
-X6,Offline registration,A,cases/X6,
-X8,Clear data after sync,A,cases/X8,
-X9,"Same CDD, two phones, synced","A, C",cases/X9,
-X9b,"Same CDD, two phones, sign-ins 1 min apart","A, C",cases/X9b,
-D1,Five heads from one search screen,A,cases/D1,4
-D2,Deep screen stack,A,cases/D2,
-D5,"Same CDD, two phones, unsynced","A, C",cases/D5,
-D6,Log out and back in,A,cases/D6,
-D11,App killed right after Submit,A,cases/D11,
+Case,Name,Phase,Flow,Reallocated,Build
+P1,Register twice from one search screen,"A, B",cases/P1,1,2.2.120
+P1b,Other ways back to search,A,cases/P1b,,2.2.120
+P2,Register button on the older search screen,A,cases/P2,,2.2.120
+P3,Popup before the ID count loads,A,cases/P3,,2.2.120
+P4,Re-download IDs before sync,A,cases/P4,,2.2.120
+P5,Six people in a row,A,cases/P5,,2.2.120
+X1,Stale ID on Add Member,"A, B",cases/X1,1,2.2.120
+X2,Acknowledgement shows the saved ID,"A, B",cases/X1,,2.2.120
+X3,Abandoned form uses no ID,A,cases/X3,,2.2.120
+X4,Consent No uses no ID,A,cases/X4,,2.2.120
+X5,Double-tap Submit,A,cases/X5,,2.2.120
+X6,Offline registration,A,cases/X6,,2.2.120
+X8,Clear data after sync,A,cases/X8,,2.2.120
+X9,"Same CDD, two phones, synced","A, C",cases/X9,,2.2.120
+X9b,"Same CDD, two phones, sign-ins 1 min apart","A, C",cases/X9b,,2.2.120
+D1,Five heads from one search screen,A,cases/D1,4,2.2.120
+D2,Deep screen stack,A,cases/D2,,2.2.120
+D5,"Same CDD, two phones, unsynced","A, C",cases/D5,,2.2.120
+D6,Log out and back in,A,cases/D6,,2.2.120
+D11,App killed right after Submit,A,cases/D11,,2.2.120
+X9-122,"Same CDD, two phones, synced - Kebbi 2.2.122","A, C",cases/X9,,2.2.122
+X9b-122,"Same CDD, two phones, sign-ins 1 min apart - Kebbi 2.2.122","A, C",cases/X9b,,2.2.122
+D5-122,"Same CDD, two phones, unsynced - Kebbi 2.2.122","A, C",cases/D5,,2.2.122

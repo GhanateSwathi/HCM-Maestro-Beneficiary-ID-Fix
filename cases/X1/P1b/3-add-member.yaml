@@ -30,7 +30,7 @@ tags:
     text: "Back To Search"
     label: "Back To Search"
 - extendedWaitUntil:
-    visible: "Register New Beneficiary"
+    visible: "Register (New )?Beneficiary"
     timeout: 15000
     label: "Back on a search screen"
 - takeScreenshot: artifacts/p1b-way2-search

@@ -11,7 +11,7 @@ name: consent-no
 # success screen reads "Data recorded successfully" with Back To Search only.
 - tapOn:
     below: "Search by ID"
-    above: "Register New Beneficiary"
+    above: "Register (New )?Beneficiary"
     index: 0
     label: "Focus the search field"
 - runFlow:
@@ -26,7 +26,7 @@ name: consent-no
 - inputText: ${NAME}
 - runFlow: ../common/close-keyboard.yaml
 - tapOn:
-    text: "Register New Beneficiary"
+    text: "Register (New )?Beneficiary"
     label: "Register New Beneficiary"
 - extendedWaitUntil:
     visible:
@@ -77,6 +77,6 @@ name: consent-no
     text: "Back To Search"
     label: "Back To Search"
 - extendedWaitUntil:
-    visible: "Register New Beneficiary"
+    visible: "Register (New )?Beneficiary"
     timeout: 15000
     label: "Back on Search Beneficiary"

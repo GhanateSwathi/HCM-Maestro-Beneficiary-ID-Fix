@@ -5,6 +5,9 @@ name: logout
 # navigation menu -> Logout -> "Are you sure you want to end the session?"
 # Ok. Ends on the login screen. Keeps the app's data (D6, and sync-data.yaml
 # signing in again after "Session Expired").
+#
+# Kebbi 2.2.122 asks "You will require internet connection to login. Are you
+# sure you want to logout?" (Alert, No / Ok - 2026-11-03).
 - tapOn:
     text: "Open navigation menu"
     label: "Open the side menu"
@@ -13,7 +16,7 @@ name: logout
     label: "Logout"
 - tapOn:
     text: "Ok"
-    below: "Are you sure you want to end the session\\?"
+    below: "Are you sure you want to end the session\\?|.*Are you sure you want to logout\\?"
     label: "Ok - end the session"
 - extendedWaitUntil:
     visible: "User ID.*"

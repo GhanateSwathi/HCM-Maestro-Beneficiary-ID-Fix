@@ -18,7 +18,7 @@ tags:
     above: "Household Overview"
     label: "The Overview's Back link"
 - extendedWaitUntil:
-    visible: "Register New Beneficiary"
+    visible: "Register (New )?Beneficiary"
     timeout: 15000
     label: "A search screen opens"
 - takeScreenshot: artifacts/p2-after-back-link
@@ -39,7 +39,7 @@ tags:
       - evalScript: ${output.where = 'Select Your Village'}
 - runFlow:
     when:
-      visible: "Register New Beneficiary"
+      visible: "Register (New )?Beneficiary"
     commands:
       - evalScript: ${output.where = 'a search screen'}
 
@@ -50,7 +50,7 @@ tags:
     commands:
       - back
       - extendedWaitUntil:
-          visible: "Register New Beneficiary"
+          visible: "Register (New )?Beneficiary"
           timeout: 15000
           label: "The first search screen"
       - takeScreenshot: artifacts/p2-first-search-screen
@@ -72,7 +72,7 @@ tags:
       # phone it opens Household Location. Leaving the form unsaved uses no
       # ID (X3).
       - tapOn:
-          text: "Register New Beneficiary"
+          text: "Register (New )?Beneficiary"
           label: "Register New Beneficiary on the older screen"
       - extendedWaitUntil:
           visible: "Household Location|Low Beneficiary IDs"

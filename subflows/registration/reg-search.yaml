@@ -23,7 +23,7 @@ name: reg-search
     commands:
       - tapOn:
           below: "Search by ID"
-          above: "Register New Beneficiary"
+          above: "Register (New )?Beneficiary"
           index: 0
           label: "Focus the search field"
       - runFlow:
@@ -42,10 +42,10 @@ name: reg-search
           below: "Search by ID"
           label: "The search text is NAME"
 - tapOn:
-    text: "Register New Beneficiary"
+    text: "Register (New )?Beneficiary"
     label: "Register New Beneficiary"
 - extendedWaitUntil:
-    visible: "Low Beneficiary IDs|Household Location"
+    visible: "Low Beneficiary IDs|Household Location|Beneficiary Location"
     timeout: 15000
     label: "Register New Beneficiary opens the popup or the form"
 - runFlow:
@@ -81,7 +81,7 @@ name: reg-search
                 below: "Low Beneficiary IDs"
                 label: "Skip"
             - extendedWaitUntil:
-                visible: "Household Location"
+                visible: "Household Location|Beneficiary Location"
                 timeout: 15000
                 label: "Skip opens the form"
       - runFlow:

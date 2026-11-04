@@ -21,7 +21,7 @@ tags:
     above: "Household Overview"
     label: "The Overview's Back link"
 - extendedWaitUntil:
-    visible: "Register New Beneficiary"
+    visible: "Register (New )?Beneficiary"
     timeout: 15000
     label: "Back on a search screen"
 - takeScreenshot: artifacts/p1b-way1-search

@@ -21,7 +21,7 @@ tags:
     above: "Household Overview"
     label: "The Overview's Back link"
 - extendedWaitUntil:
-    visible: "Register New Beneficiary"
+    visible: "Register (New )?Beneficiary"
     timeout: 15000
     label: "A search screen opens"
 - runFlow:

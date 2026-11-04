@@ -42,6 +42,16 @@ TRACKER = ROOT / "TEST-CASES.md"
 RESULT_FIELDS = ["Case", "Result", "Comments", "RunDate", "Evidence"]
 LEDGER_FIELDS = ["ID", "Person", "Household", "Case", "Phone", "CddUser", "RunDate"]
 POOL_ID = re.compile(r"^\d{12}$")
+# The build of a ledger row whose case is not in cases.csv (the SETUP fixtures).
+FIRST_BUILD = "2.2.120"
+
+
+def builds(cases):
+    """Each case's build (cases.csv). Each build has its own server - Kaduna
+    2.2.120, Kebbi 2.2.122 - and so its own ID pool: an ID is a duplicate only
+    when two rows of one build hold it."""
+    by_case = {c["Case"]: c.get("Build") or FIRST_BUILD for c in cases}
+    return lambda case: by_case.get(case, FIRST_BUILD)
 
 
 def read_csv(path):
@@ -189,12 +199,21 @@ def record(a):
             parts.append(text)
         notes.append("At Submit - " + "; ".join(parts))
 
-    # ID ledger: a 12-digit ID already given to someone else is a duplicate,
-    # and the case that made the second row fails.
+    # The deviceUuid the app gave each device's pool IDs (run-case.ps1, from
+    # the device logs). On 2.2.120 it was the Android build ID, the same on
+    # both emulators, and both held one pool (X9, 2026-11-03).
+    uuids = [kv.split("=", 1) for kv in a.device_uuids.split(";") if "=" in kv]
+    if uuids:
+        notes.append("Pool IDs' deviceUuid - " + "; ".join(f"{d} {u}" for d, u in uuids))
+
+    # ID ledger: a 12-digit ID already given to someone else on the same
+    # build's server is a duplicate, and the case that made the second row
+    # fails.
+    build_of = builds(cases.values())
     earlier = read_csv(LEDGER)
     seen = {}
     for row in earlier:
-        if POOL_ID.match(row["ID"]):
+        if POOL_ID.match(row["ID"]) and build_of(row["Case"]) == build_of(a.case):
             seen.setdefault(row["ID"], f'{row["Person"]} ({row["Case"]})')
     for p in people:
         if POOL_ID.match(p["ID"]):
@@ -251,10 +270,16 @@ def build():
     cases = read_csv(CASES)
     latest = latest_results()
     ledger = read_csv(LEDGER)
+    build_of = builds(cases)
     counts = {}
     for row in ledger:
         if POOL_ID.match(row["ID"]):
-            counts[row["ID"]] = counts.get(row["ID"], 0) + 1
+            key = (build_of(row["Case"]), row["ID"])
+            counts[key] = counts.get(key, 0) + 1
+
+    def is_dup(row):
+        return counts.get((build_of(row["Case"]), row["ID"]), 0) > 1
+
     rows = []
     for c in cases:
         r = latest.get(c["Case"], {})
@@ -262,9 +287,9 @@ def build():
                      "Result": r.get("Result", "NOT RUN"), "Comments": r.get("Comments", ""),
                      "RunDate": r.get("RunDate", ""), "Evidence": r.get("Evidence", "")})
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
-    write_xlsx(rows, ledger, counts)
-    write_html(rows, ledger, counts)
-    write_tracker(rows, ledger, counts)
+    write_xlsx(rows, ledger, is_dup)
+    write_html(rows, ledger, is_dup)
+    write_tracker(rows, ledger, is_dup)
     print(f"Report: {REPORT_DIR / 'results.xlsx'} and {REPORT_DIR / 'report.html'}")
 
 
@@ -273,7 +298,7 @@ def summary(rows):
     return [(k, sum(1 for r in rows if r["Result"] == k)) for k in order]
 
 
-def write_xlsx(rows, ledger, counts):
+def write_xlsx(rows, ledger, is_dup):
     from openpyxl import Workbook
     from openpyxl.styles import Alignment, Font, PatternFill
 
@@ -300,7 +325,7 @@ def write_xlsx(rows, ledger, counts):
     wl = wb.create_sheet("ID ledger")
     wl.append(["ID", "Person", "Household", "Case", "Phone", "CDD user", "Run date", "Duplicate"])
     for row in ledger:
-        dup = counts.get(row["ID"], 0) > 1
+        dup = is_dup(row)
         wl.append([row["ID"], row["Person"], row["Household"], row["Case"], row["Phone"], row["CddUser"],
                    row["RunDate"], "YES" if dup else ""])
         if dup:
@@ -323,7 +348,7 @@ def write_xlsx(rows, ledger, counts):
     wb.save(REPORT_DIR / "results.xlsx")
 
 
-def write_html(rows, ledger, counts):
+def write_html(rows, ledger, is_dup):
     e = html.escape
     tiles = "".join(f'<div class="tile {k.replace(" ", "-").lower()}"><b>{n}</b><span>{k}</span></div>'
                     for k, n in summary(rows))
@@ -333,9 +358,9 @@ def write_html(rows, ledger, counts):
         f'<td>{e(r["Comments"])}</td><td>{e(r["RunDate"])}</td><td>{e(r["Evidence"])}</td></tr>'
         for r in rows)
     led = "".join(
-        f'<tr class="{"dup" if counts.get(x["ID"], 0) > 1 else ""}"><td>{e(x["ID"])}</td><td>{e(x["Person"])}</td>'
+        f'<tr class="{"dup" if is_dup(x) else ""}"><td>{e(x["ID"])}</td><td>{e(x["Person"])}</td>'
         f'<td>{e(x["Household"])}</td><td>{e(x["Case"])}</td><td>{e(x["Phone"])}</td><td>{e(x["CddUser"])}</td>'
-        f'<td>{e(x["RunDate"])}</td><td>{"YES" if counts.get(x["ID"], 0) > 1 else ""}</td></tr>'
+        f'<td>{e(x["RunDate"])}</td><td>{"YES" if is_dup(x) else ""}</td></tr>'
         for x in ledger) or '<tr><td colspan="8">No IDs recorded yet.</td></tr>'
     stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
     page = f"""<!doctype html>
@@ -366,7 +391,7 @@ th {{ font-size:12px; color:var(--muted); font-weight:600; }}
 tr.dup td {{ background:var(--fail-bg); }}
 </style></head><body><main>
 <h1>Beneficiary ID Fix - QA results</h1>
-<p class="sub">Kaduna fix build 2.2.120 (org.egov.azm.gombe) &middot; generated {stamp}</p>
+<p class="sub">Kaduna fix build 2.2.120 (org.egov.azm.gombe); X9, X9b and D5 again on Kebbi 2.2.122 (org.egov.azm.kebbi, cases "-122") &middot; generated {stamp}</p>
 <div class="tiles">{tiles}</div>
 <h2>Results</h2>
 <div class="wrap"><table><thead><tr><th>#</th><th>Case</th><th>Phase</th><th>Result</th><th>Comments</th><th>Run date</th><th>Evidence</th></tr></thead>
@@ -379,7 +404,7 @@ tr.dup td {{ background:var(--fail-bg); }}
     (REPORT_DIR / "report.html").write_text(page, encoding="utf-8")
 
 
-def write_tracker(rows, ledger, counts):
+def write_tracker(rows, ledger, is_dup):
     """Fills TEST-CASES.md's Result and Comments columns for cases that ran,
     and its ID ledger table (the rows under the table's header, from
     artifacts/ledger.csv; a duplicate ID is marked)."""
@@ -394,7 +419,7 @@ def write_tracker(rows, ledger, counts):
         if in_ledger and line.startswith("| ") and not line.startswith("| ID ") and not line.startswith("| ---"):
             continue  # an old ledger row: written afresh below
         cells = line.split(" | ")
-        m = re.match(r"^\| (\w+)$", cells[0]) if cells else None
+        m = re.match(r"^\| ([\w-]+)$", cells[0]) if cells else None
         if m and m.group(1) in by_case and len(cells) == 6:
             r = by_case[m.group(1)]
             note = f'{r["Comments"]} Run {r["RunDate"]}, {r["Evidence"]}'.replace("|", "/")
@@ -404,7 +429,7 @@ def write_tracker(rows, ledger, counts):
         out.append(line)
         if in_ledger and line.startswith("| ---"):
             for x in ledger:
-                pid = x["ID"] + (" (DUPLICATE)" if counts.get(x["ID"], 0) > 1 else "")
+                pid = x["ID"] + (" (DUPLICATE)" if is_dup(x) else "")
                 out.append(f'| {pid} | {x["Person"]} | {x["Household"]} | {x["Case"]} | {x["Phone"]} | '
                            f'{x["CddUser"]} | {x["RunDate"]} |')
     TRACKER.write_text("\n".join(out) + "\n", encoding="utf-8")
@@ -420,6 +445,7 @@ def main():
     r.add_argument("--reallocated", type=int, required=True)
     r.add_argument("--id-lines", type=int, required=True)
     r.add_argument("--offered", default="", help="name=id;name=id - the ID each form carried at Submit")
+    r.add_argument("--device-uuids", default="", help="device=uuid;device=uuid - the deviceUuid of each device's pool IDs")
     r.add_argument("--phone", default="")
     r.add_argument("--user", default="")
     r.add_argument("--tag", default="", help="record only the lines tagged for this case (X2 inside X1)")

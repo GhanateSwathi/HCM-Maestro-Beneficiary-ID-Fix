@@ -14,7 +14,7 @@ name: search-by-id
 - runFlow: ../registration/search-by-id-on.yaml
 - tapOn:
     below: "Search by ID"
-    above: "Register New Beneficiary"
+    above: "Register (New )?Beneficiary"
     index: 0
     label: "Focus the search field"
 - inputText: ${ID}

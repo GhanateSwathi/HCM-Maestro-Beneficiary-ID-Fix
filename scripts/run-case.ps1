@@ -227,8 +227,25 @@ foreach ($hit in Select-String -Path $logs -Pattern 'CONDITION_EVAL: navigation=
 $offeredArg = ($offered.GetEnumerator() | ForEach-Object { '{0}={1}' -f $_.Key, $_.Value }) -join ';'
 if ($offeredArg) { Write-Host "Offered at Submit: $offeredArg" }
 
+# The deviceUuid each device's pool IDs carry. 2.2.120 logs every pool ID as
+#   UniqueIdPoolModel(id: 121517171780, status: UN_ASSIGNED, deviceUuid: BP22.250221.010, userUuid: ...)
+# - the Android build ID, the same on both emulators, which both held one
+# pool (X9, 2026-11-03). Kebbi 2.2.122 logs it in each ID download request
+# (id_pool/_dispatch) as
+#     "deviceUuid": "8db6335da8f803fa",
+# Device 2's logs end in ".device2.log".
+$uuids = [ordered]@{}
+foreach ($d in $devices) {
+    $own = @($logs | Where-Object { ($_ -match '\.device2\.log$') -eq ($d -ne $Device) })
+    $found = @(Select-String -Path $own -Pattern 'UniqueIdPoolModel\(.*?deviceUuid: ([^,)]+)|"deviceUuid": "([^"]+)"' -ErrorAction SilentlyContinue |
+        ForEach-Object { $g = $_.Matches[0].Groups; if ($g[1].Success) { $g[1].Value.Trim() } else { $g[2].Value.Trim() } } | Sort-Object -Unique)
+    if ($found) { $uuids[$d] = $found -join '/' }
+}
+$uuidArg = ($uuids.GetEnumerator() | ForEach-Object { '{0}={1}' -f $_.Key, $_.Value }) -join ';'
+if ($uuidArg) { Write-Host "Pool IDs' deviceUuid: $uuidArg" }
+
 python (Join-Path $PSScriptRoot 'report.py') record --case $Case --run-dir $runDir --exit-code $code `
-    --reallocated $reallocated --id-lines $idLines.Count "--offered=$offeredArg" `
+    --reallocated $reallocated --id-lines $idLines.Count "--offered=$offeredArg" "--device-uuids=$uuidArg" `
     --phone $Device --user $envMap['HCM_CDD_USER_ID']
 
 # A second case run inside this one (X2 inside X1) logs its lines tagged

@@ -3,14 +3,18 @@ name: reg-location-consent
 ---
 # From Household Location: wait for the location fix -> Next -> Care giver's
 # consent Yes -> Submit. Ends on Household Details (the member count).
+#
+# Kebbi 2.2.122 (form "version 3", 2026-11-03) names the page Beneficiary
+# Location, the field "Lat/Long *" and the button Save Location; the
+# consent page is the same.
 - extendedWaitUntil:
     visible:
       text: "\\d+(\\.\\d+)? meters"
-      below: "Geo-coordinates \\*"
+      below: "Geo-coordinates \\*|Lat/Long \\*"
     timeout: 60000
     label: "The location is captured"
 - tapOn:
-    text: "Next"
+    text: "Next|Save Location"
     label: "Next"
 - extendedWaitUntil:
     visible: "Care giver's consent"

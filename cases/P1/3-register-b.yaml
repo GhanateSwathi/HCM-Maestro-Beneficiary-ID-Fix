@@ -11,7 +11,7 @@ tags:
 # still carried A's ID - the stale screen the case is about - shows in the
 # report's "At Submit" comment, from the app's own log.
 - extendedWaitUntil:
-    visible: "Register New Beneficiary"
+    visible: "Register (New )?Beneficiary"
     timeout: 15000
     label: "Part 2 left the app on Search Beneficiary"
 - runFlow:

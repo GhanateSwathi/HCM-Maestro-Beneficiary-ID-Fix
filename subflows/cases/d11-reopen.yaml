@@ -19,7 +19,7 @@ name: d11-reopen
 - runFlow: ../registration/open-search.yaml
 - tapOn:
     below: "Search by ID"
-    above: "Register New Beneficiary"
+    above: "Register (New )?Beneficiary"
     index: 0
     label: "Focus the search field"
 - inputText: ${'QAID-D11-' + R + 'A'}

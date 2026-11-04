@@ -7,7 +7,10 @@ tags:
 # decision, 2026-11-03): both emulators do each step at the same time, signed
 # in as the same CDD. Parts with the same number run together
 # (run-case.ps1); parts "@2" run on device 2 (DEVICE_ID_2).
-#   1  both sign in and download IDs (Re-Fetch IDs on "Limit exceeded")
+#   1  both sign in and download IDs (Re-Fetch IDs on "Limit exceeded").
+#      "Download" is a try: on Kebbi 2.2.122 the button is greyed out while
+#      the device holds 600 of 600 (2026-11-03 19:17), and then the device
+#      goes on with the IDs it holds (a NOTE says so)
 #   2  device 1 registers QAID-X9-A, device 2 QAID-X9-B, both online
 #   3  both Sync Data
 #   4  the ID checks, each device on its own ID
@@ -26,4 +29,4 @@ tags:
     file: ../../subflows/id/case-start.yaml
     env:
       NEED: 1
-      DOWNLOAD: "yes"
+      DOWNLOAD: "try"

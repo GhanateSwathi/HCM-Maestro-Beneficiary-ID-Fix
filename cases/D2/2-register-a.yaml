@@ -19,7 +19,7 @@ tags:
     above: "Household Overview"
     label: "S1's household - Back link (S2)"
 - extendedWaitUntil:
-    visible: "Register New Beneficiary"
+    visible: "Register (New )?Beneficiary"
     timeout: 15000
     label: "S2 opens"
 - runFlow:
@@ -31,7 +31,7 @@ tags:
     above: "Household Overview"
     label: "S2's household - Back link (S3)"
 - extendedWaitUntil:
-    visible: "Register New Beneficiary"
+    visible: "Register (New )?Beneficiary"
     timeout: 15000
     label: "S3 opens"
 - runFlow:

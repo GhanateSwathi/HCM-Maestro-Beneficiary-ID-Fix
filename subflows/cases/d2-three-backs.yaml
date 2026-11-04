@@ -29,7 +29,7 @@ name: d2-three-backs
       - evalScript: ${output.where = 'Select Your Village'}
 - runFlow:
     when:
-      visible: "Register New Beneficiary"
+      visible: "Register (New )?Beneficiary"
     commands:
       - evalScript: ${output.where = 'a search screen with an empty field'}
 - runFlow:

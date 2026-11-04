@@ -6,7 +6,7 @@ name: open-household
 # lists one card per household - the head's name, then Open.
 - tapOn:
     below: "Search by ID"
-    above: "Register New Beneficiary"
+    above: "Register (New )?Beneficiary"
     index: 0
     label: "Focus the search field"
 - runFlow:

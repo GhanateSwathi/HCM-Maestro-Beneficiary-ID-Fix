@@ -37,13 +37,13 @@ name: p3-try
     label: "Open REGISTRATION_VILLAGE"
 - tapOn:
     below: "Search by ID"
-    above: "Register New Beneficiary"
+    above: "Register (New )?Beneficiary"
     index: 0
     waitToSettleTimeoutMs: 200
     label: "Focus the search field at once"
 - inputText: QAID-P3-A
 - tapOn:
-    text: "Register New Beneficiary"
+    text: "Register (New )?Beneficiary"
     waitToSettleTimeoutMs: 200
     label: "Register New Beneficiary at once"
 - extendedWaitUntil:
@@ -63,7 +63,7 @@ name: p3-try
             TEXT: "${'Try ' + TRY + ' - Register opened the form, no Low Beneficiary IDs popup'}"
       - back
       - extendedWaitUntil:
-          visible: "Register New Beneficiary|Select Your Village|Registration & Delivery|Care giver's consent"
+          visible: "Register (New )?Beneficiary|Select Your Village|Registration & Delivery|Care giver's consent"
           timeout: 8000
           optional: true
           label: "Where does Back go?"
@@ -71,7 +71,7 @@ name: p3-try
       - evalScript: ${output.backStayed = false}
       - runFlow:
           when:
-            visible: "Register New Beneficiary|Select Your Village|Registration & Delivery|Household Location|Care giver's consent"
+            visible: "Register (New )?Beneficiary|Select Your Village|Registration & Delivery|Household Location|Care giver's consent"
           commands:
             - evalScript: ${output.backStayed = true}
       - runScript:

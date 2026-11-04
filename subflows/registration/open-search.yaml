@@ -9,7 +9,9 @@ name: open-search
 # screen shows the village chip, "Search Beneficiary", "Search by ID", the
 # field (hint "Name of the individual") and "Register New Beneficiary"
 # (disabled while the field is empty). "Near by households" appears above
-# Search by ID only once the screen has loaded.
+# Search by ID only once the screen has loaded. On Kebbi 2.2.122
+# (2026-11-03) the button reads "Register Beneficiary"; the selectors take
+# both.
 - tapOn:
     text: "Registration & Delivery"
     label: "Open Registration & Delivery"

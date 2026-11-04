@@ -19,5 +19,23 @@ name: launch-app
     visible: "User ID.*|Allow .*\\?|Let app always run in background.*|Turn on|.*isn't responding.*|Allow Permissions|Internet not available.*|CORE_COMMON_CONNECTION_LABEL|.*Health Facility.*|Registration & Delivery|Beneficiary IDs"
     timeout: 60000
     label: "Wait for the app's first screen"
+
+# The app loads its config from the server as it starts. On 2026-11-03 18:28
+# (Kebbi 2.2.122, emulator-5554, first launch) the server closed the
+# connection ("Connection closed before full header was received" in the
+# log) and the app showed only "Internet not available. Try later." with
+# Close; a relaunch loaded it.
+- repeat:
+    while:
+      visible: "Internet not available.*"
+    times: 2
+    commands:
+      - stopApp
+      - launchApp:
+          label: "Relaunch - the app could not load its config"
+      - extendedWaitUntil:
+          visible: "User ID.*|Allow .*\\?|Let app always run in background.*|Turn on|.*isn't responding.*|Allow Permissions|Internet not available.*|CORE_COMMON_CONNECTION_LABEL|.*Health Facility.*|Registration & Delivery|Beneficiary IDs"
+          timeout: 60000
+          label: "Wait for the app's first screen again"
 - runFlow: accept-system-dialogs.yaml
 - runFlow: connection-dialog.yaml

@@ -5,6 +5,10 @@ name: reg-details
 # Details, HOUSEHOLD_MEMBERS -> Next -> the head's form filled in (NAME
 # LAST_NAME, HEAD_AGE_YEARS, HEAD_GENDER). Ends on the filled-in form,
 # before Submit - X5 double-taps Submit and D11 kills the app right after it.
+#
+# Kebbi 2.2.122 (2026-11-03): the button here is Save Household Details, the
+# head's page is Beneficiary Details with "Is head of family? *" (ticked)
+# below Last name.
 - repeat:
     times: ${Number(HOUSEHOLD_MEMBERS) - 1}
     commands:
@@ -17,7 +21,7 @@ name: reg-details
     below: "Total household members \\*"
     label: "The member count is HOUSEHOLD_MEMBERS"
 - tapOn:
-    text: "Next"
+    text: "Next|Save Household Details"
     label: "Next"
 
 # --- The head ------------------------------------------------------------------------
@@ -32,7 +36,7 @@ name: reg-details
     label: "First name is prefilled with NAME"
 - tapOn:
     below: "Last name \\*"
-    above: "Household Head.*"
+    above: "Household Head.*|Is head of family.*"
     index: 0
     label: "Focus Last name"
 - inputText: ${LAST_NAME}

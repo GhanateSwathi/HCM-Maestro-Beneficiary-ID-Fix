@@ -5,12 +5,12 @@ tags:
 ---
 # X9 part 1 (see 1-start.yaml), device 2, at the same time as device 1: sign
 # in as the same CDD -> home -> Download Beneficiary IDs (Re-Fetch IDs on
-# "Limit exceeded") -> N available as VAR N0_2. Ends on device 2's home
-# screen.
+# "Limit exceeded"; a try - greyed out at 600 of 600 on 2.2.122) -> N
+# available as VAR N0_2. Ends on device 2's home screen.
 - runFlow:
     file: ../../subflows/id/case-start.yaml
     env:
       NEED: 1
-      DOWNLOAD: "yes"
+      DOWNLOAD: "try"
       N_VAR: N0_2
       T_VAR: T0_2

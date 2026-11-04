@@ -4,8 +4,12 @@ name: reg-submit
 # "Register a household", last part (see reg-start.yaml): Submit the filled-in
 # head's form. Ends on Household Overview. Creates the household and uses an
 # ID - IRREVERSIBLE.
+#
+# Kebbi 2.2.122's button is Save Beneficiary. Its form config (in the APK)
+# runs UPDATE_IDENTIFIER_STATUS and CREATE_EVENT on it and goes straight to
+# householdOverview - no popup in between (2026-11-03).
 - tapOn:
-    text: "Submit"
+    text: "Submit|Save Beneficiary"
     label: "Submit the household"
 - extendedWaitUntil:
     visible: "Household Overview"

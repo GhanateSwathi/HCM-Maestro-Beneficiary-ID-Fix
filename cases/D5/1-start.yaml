@@ -27,4 +27,6 @@ tags:
     file: ../../subflows/id/case-start.yaml
     env:
       NEED: 1
-- evalScript: "${console.log('NOTE|No new ID download in D5 - Download Beneficiary IDs was greyed out (not clickable) on emulator-5554 at 598 of 600, 2026-11-03 12:30; both devices used the pool each re-fetched in X9 at 12:09')}"
+# The note is the same on every build (D5-122 runs this too): the 2.2.120
+# date is the reason, not something this run saw.
+- evalScript: "${console.log('NOTE|No new ID download in D5 - both devices used the pool each downloaded in the X9 run before it (on 2.2.120 Download Beneficiary IDs was greyed out at 598 of 600, 2026-11-03 12:30)')}"

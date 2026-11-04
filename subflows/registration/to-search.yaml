@@ -17,11 +17,11 @@ name: to-search
 - repeat:
     times: 4
     while:
-      notVisible: "Register New Beneficiary|Select Your Village|Registration & Delivery"
+      notVisible: "Register (New )?Beneficiary|Select Your Village|Registration & Delivery"
     commands:
       - back
       - extendedWaitUntil:
-          visible: "Register New Beneficiary|Select Your Village|Registration & Delivery"
+          visible: "Register (New )?Beneficiary|Select Your Village|Registration & Delivery"
           timeout: 5000
           optional: true
           label: "Wait for the screen Back leads to"
@@ -38,6 +38,6 @@ name: to-search
       visible: "Registration & Delivery"
     file: open-search.yaml
 - extendedWaitUntil:
-    visible: "Register New Beneficiary"
+    visible: "Register (New )?Beneficiary"
     timeout: 15000
     label: "On Search Beneficiary"

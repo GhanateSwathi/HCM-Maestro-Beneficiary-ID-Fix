@@ -31,7 +31,7 @@ tags:
 
 - back
 - extendedWaitUntil:
-    visible: "Register New Beneficiary"
+    visible: "Register (New )?Beneficiary"
     timeout: 15000
     label: "Back on Search Beneficiary"
 - takeScreenshot: artifacts/p1-back-on-search

@@ -4,12 +4,33 @@ Maestro (Android) automation for the **Beneficiary ID Fix – QA Test Plan** (20
 
 | | |
 | --- | --- |
-| App | `org.egov.azm.gombe` 2.2.120 (label ADAMAWA-AZM) - the Kaduna fix build |
+| App | `org.egov.azm.gombe` 2.2.120 (label ADAMAWA-AZM) - the Kaduna fix build. From 2026-11-03 evening, X9, X9b and D5 again on `org.egov.azm.kebbi` 2.2.122 (KEBBI-AZM, Kebbi server) - see below |
 | Device | From 2026-11-02: emulator `HCM_Beneficiary_ID` (Pixel 9 Pro XL, Android 16, 12 GB data), `emulator-5554` - see [The emulator](#the-emulator). Before: vivo V2059 phone, Android 13, serial `1361446350000MX` |
 | User | One CDD (`HCM_CDD_USER_ID` in `.env`) |
 | Cases | [TEST-CASES.md](TEST-CASES.md) - the 19 Phase A cases run, and X9b, with result, comments and the ID ledger |
 
-## Where we left off (2026-11-03)
+## Where we left off (2026-11-04)
+
+**All three cases that failed on 2.2.120 PASS on Kebbi 2.2.122: X9-122, D5-122 (2026-11-03) and X9b-122 (2026-11-04 10:38).** X9, X9b and D5 run again on Kebbi build 2.2.122 (`kebbi-azm-2.2.122-signed-android-id.apk`) - separate cases `X9-122`, `X9b-122`, `D5-122`, so the 2.2.120 FAILs below stay as evidence. Same two emulators, same flows. The build is a different app on a different server: `org.egov.azm.kebbi`, `kebbi-azm-central-hcm.digit.org` (tenant `kb`), CDD `ke-azm-cdd-01`, boundary ke Garadi Health Post / Tungar Yari. `.env` points at it now (both APKs kept: `HCM_APK_KADUNA`, `HCM_APK_KEBBI`).
+
+| Case | Result | What it showed |
+| --- | --- | --- |
+| X9-122 | **PASS** | Online, same moment: A **041714103501**, B **101162421824** - different; N 600 → 599 on each; both synced; Search by ID finds each |
+| D5-122 | **PASS** | Offline, same moment: A **101012915202**, B **101822411107** - different; N 599 → 598 on each; both synced |
+| X9b-122 | **PASS** | 2026-11-04: both logged out; device 1 signed in at 10:41:32, device 2 at 10:42:28; at the same moment A **031272062343**, B **101321202316** - different; N 598 → 597 on each; both synced; Search by ID finds each. No re-fetch after the sign-ins: the button is greyed out at 598 of 600 on 2.2.122, so each device kept the pool it already held (on 2.2.120 that re-fetch is what handed both devices one pool). A first attempt (2026-11-03 19:59) was stopped by QA in part 3, before Save Beneficiary - nothing saved |
+
+**Why it no longer duplicates** (question 6): each device now sends its own `deviceUuid` with its ID download - `8db6335da8f803fa` (emulator-5554) and `3ac5fc15fb2bf925` (emulator-5556), where 2.2.120 sent the build ID `BP22.250221.010` from both - and each got its **own 600 IDs: none in both pools** (compared from the dispatch responses in the logs, 18:40 and 18:58). Every ID the cases gave out came from its own device's pool.
+
+**Next session - start here:**
+
+1. Send questions 6-9 to the dev with the 2.2.120 and 2.2.122 evidence; add the `-122` results to the shared report.
+2. Commit, if not done yet - the flow changes for the Kebbi form, the `-122` cases and their results.
+
+To run on Kebbi again: start both emulators with the Kebbi host - `.\scripts\start-emulator.ps1 -UatHost kebbi-azm-central-hcm.digit.org`, then `.\scripts\start-emulator.ps1 -Avd HCM_Beneficiary_ID_2 -Port 5556 -UatHost kebbi-azm-central-hcm.digit.org` (close Chrome and Slack; free RAM was 1-2 GB with both up) - then `.\scripts\run-case.ps1 -Case X9-122` (or D5-122, X9b-122). Both emulators hold Kebbi IDs now (597 of 600 each, 2026-11-04), everything synced.
+
+What changed to run Kebbi (all selectors take both builds' wording, so the Kaduna cases still run): the form is a different config ("version 3") - Register Beneficiary, Beneficiary Location / "Lat/Long *" / Save Location, Save Household Details, "Is head of family? *", Save Beneficiary; the logout dialog asks "…Are you sure you want to logout?"; `launch-app.yaml` relaunches when the app's start-up config request fails ("Internet not available. Try later." - the server dropped it once, 18:28); X9's start downloads as a try (the button is greyed out at 600 of 600 on 2.2.122); `run-case.ps1` records each device's `deviceUuid` in the result; `report.py` counts duplicates within one build only (each build has its own server and ID pool).
+
+## 2.2.120 results (2026-11-03)
 
 **Phase A is done: 17 PASS, 2 FAIL (X9, D5)** - and X9b, QA's variant of X9, FAIL too. The two-device cases ran on 2026-11-03 on both emulators at once - in lockstep, every step on both devices together, signed in as the same CDD (QA's decision; see [Running](#running)) - and **both gave one ID to two people**:
 
@@ -18,11 +39,10 @@ Maestro (Android) automation for the **Beneficiary ID Fix – QA Test Plan** (20
 - **X9b** (QA's variant, sign-ins a minute apart): both log out; device 1 signs in at 14:55:50 and device 2 at 14:56:51, each re-fetching its IDs (596 of 600 on both); then A and B registered at the same moment both got **121212121234** - the minute between sign-ins changed nothing. Both synced.
 - Why the two devices hold one pool: the app reports `deviceUuid` as the Android build ID, the same on both emulators (question 6), and both re-fetched the same 600 IDs. Whether phones with different build IDs get different pools is not tested.
 
-**Next session - start here:**
+Still open from 2.2.120:
 
 1. Send questions 6 and 7 (below) to the dev with the X9 / D5 evidence (`artifacts/runs/20261103-120944-X9`, `…-123825-D5`).
 2. Add X9, D5 and P6 (out of scope) to the shared report (Claude doc "Beneficiary ID Fix – QA Test Report (Phase A)") - not done yet.
-3. Optional, for the dev's answer to question 6: X9 with the vivo phone as device 2 (a different build ID), to see whether a different `deviceUuid` gets a different pool.
 
 To run the two-device cases again: close Chrome and Slack (two emulators take about 7 GB), `.\scripts\start-emulator.ps1`, then `.\scripts\start-emulator.ps1 -Avd HCM_Beneficiary_ID_2 -Port 5556`, then `.\scripts\run-case.ps1 -Case X9` (or D5). D5's start parts do not download IDs (Download Beneficiary IDs was greyed out - question 7); put `DOWNLOAD: "yes"` back once it answers again.
 
@@ -72,7 +92,9 @@ All test households are in Rigan Ori under `dis-qa-oct29`, named `QAID-<case>-<l
 4. **Config on UAT**: with 0 IDs the Low Beneficiary IDs popup shows only Download (no Skip) - **Skip was removed on purpose** (2026-11-03), so P6 is out of scope. Still open: is `REGISTRATION_kd_fix.json` already on UAT (then the config-phase cases can start), and how should QA make UUID ("No Beneficiary ID") people for the edit cases, now that Skip is gone?
 5. **Session length**: UAT rejected the app's token about 40 minutes after sign-in ("Sync Up Failed / Session Expired", 401 InvalidAccessTokenException; also "Failed to check data in server" at the boundary step). Is that the intended token lifetime? A field user would have to log out and in to sync.
 6. **`deviceUuid` is the Android build ID** (X9, 2026-11-03): the app logs each pool ID as `UniqueIdPoolModel(id: …, deviceUuid: BP22.250221.010, userUuid: <the CDD's>)` - `BP22.250221.010` is `ro.build.id`, the same on both emulators although their `android_id`s differ (`910e3e…`, `d222d5…`). Any two phones of one model on one OS update share it too. Does the server use `deviceUuid` to split a CDD's ID pool between devices? Both emulators re-fetched the same 600 IDs and gave A and B the same ID.
-7. **Download Beneficiary IDs greyed out** (2026-11-03 12:30): on `emulator-5554` at 598 of 600, about 20 minutes after a Re-Fetch IDs, the button was not clickable; at 599-600 earlier the same day it answered "Limit exceeded" → Re-Fetch IDs. When is the download disabled, and for how long?
+7. **Download Beneficiary IDs greyed out** (2026-11-03 12:30): on `emulator-5554` at 598 of 600, about 20 minutes after a Re-Fetch IDs, the button was not clickable; at 599-600 earlier the same day it answered "Limit exceeded" → Re-Fetch IDs. When is the download disabled, and for how long? (On Kebbi 2.2.122 it is greyed out at 600 of 600, 2026-11-03 19:17.)
+8. **Download does nothing on a rejected session** (Kebbi 2.2.122, 2026-11-03 18:45): `ke-azm-cdd-01`'s token was rejected (401 on every request) and Download Beneficiary IDs did nothing - no dialog, no error, no "Session Expired"; the device stayed at 0 of 0. A field user would not know why. Should the app tell them to sign in again?
+9. **Both sessions rejected when a second device signed in** (Kebbi 2.2.122, 2026-11-03): `emulator-5554` signed in at about 18:33; from 18:44:20 - just after `emulator-5556` first signed in as the same CDD - both devices got 401. After each signed in again (18:58, 19:09) both worked side by side, so it is not one session per user; and in X9b-122 (2026-11-04 10:41-10:42) device 2's sign-in left device 1's session working. Does the server end a user's sessions when a new device first signs in? (Someone else using the shared CDD then cannot be ruled out.)
 
 ## Setup
 

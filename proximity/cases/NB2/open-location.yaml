@@ -1,0 +1,19 @@
+appId: ${HCM_APP_ID}
+name: NB2 - open a fresh search screen and start registering NAME
+tags:
+  - proximity
+---
+# Ends on the household location page (Household Location / Beneficiary
+# Location), where the app captures the GPS fix for NAME's household.
+- runFlow: ../NB1/reopen-search.yaml
+- runFlow:
+    file: ../../../subflows/registration/reg-search.yaml
+    env:
+      NAME: ${NAME}
+- extendedWaitUntil:
+    visible:
+      text: "\\d+(\\.\\d+)? meters"
+    timeout: 60000
+    optional: true
+    label: "The location is captured"
+- takeScreenshot: artifacts/location-${NAME}

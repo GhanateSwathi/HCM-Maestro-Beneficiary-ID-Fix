@@ -1,0 +1,76 @@
+appId: ${HCM_APP_ID}
+name: NB2 - E-09 search centre when the phone moves with Search open
+tags:
+  - proximity
+---
+# PROXIMITY-CASES.md E-09. The runner puts the GPS on C, this opens a fresh
+# Search there, then the runner's MOVE command is replayed here as a wait:
+# the GPS is moved 10 km north (adb emu geo fix, from the runner, while this
+# flow waits on the open screen). Then Near by on + "QAID-NB2": NB2-C listed
+# means the search used the old position (C); NB2-10KM listed means it used
+# the new one.
+- runFlow: ../NB1/reopen-search.yaml
+- waitForAnimationToEnd:
+    timeout: 5000
+- evalScript: "${console.log('STEP|search open at C - move the GPS now')}"
+# The runner moves the GPS during this wait (it watches for the STEP line).
+- extendedWaitUntil:
+    visible: "NEVER-SHOWN-TEXT"
+    timeout: 25000
+    optional: true
+    label: "Wait while the GPS moves 10 km north"
+- tapOn:
+    point: "8%,29%"
+    label: "Switch Near by households on"
+- tapOn:
+    text: "Name of the individual"
+    label: "Focus the search field"
+- inputText: "QAID-NB2"
+- runFlow: ../../../subflows/common/close-keyboard.yaml
+- extendedWaitUntil:
+    visible: "QAID-NB2-.* Test"
+    timeout: 15000
+    optional: true
+    label: "Results show"
+- evalScript: ${output.c = false}
+- evalScript: ${output.far = false}
+- runFlow:
+    when:
+      visible: "QAID-NB2-C Test"
+    commands:
+      - evalScript: ${output.c = true}
+- runFlow:
+    when:
+      visible: "QAID-NB2-10KM Test"
+    commands:
+      - evalScript: ${output.far = true}
+- evalScript: "${console.log('E09|' + (output.c ? 'old position C used (NB2-C listed)' : '') + (output.far ? 'new position used (NB2-10KM listed)' : '') + (!output.c && !output.far ? 'neither listed' : ''))}"
+- takeScreenshot: artifacts/e09-stale-centre
+# Same screen, switch Near by off and on again: does the centre update?
+- tapOn:
+    point: "8%,29%"
+    label: "Near by off"
+- waitForAnimationToEnd:
+    timeout: 4000
+- tapOn:
+    point: "8%,29%"
+    label: "Near by on again"
+- extendedWaitUntil:
+    visible: "QAID-NB2-.* Test"
+    timeout: 15000
+    optional: true
+    label: "Results show"
+- evalScript: ${output.c2 = false}
+- evalScript: ${output.far2 = false}
+- runFlow:
+    when:
+      visible: "QAID-NB2-C Test"
+    commands:
+      - evalScript: ${output.c2 = true}
+- runFlow:
+    when:
+      visible: "QAID-NB2-10KM Test"
+    commands:
+      - evalScript: ${output.far2 = true}
+- evalScript: "${console.log('E09b|after Near by off/on: ' + (output.c2 ? 'old position C used (NB2-C listed)' : '') + (output.far2 ? 'new position used (NB2-10KM listed)' : '') + (!output.c2 && !output.far2 ? 'neither listed' : ''))}"
+- takeScreenshot: artifacts/e09-after-toggle

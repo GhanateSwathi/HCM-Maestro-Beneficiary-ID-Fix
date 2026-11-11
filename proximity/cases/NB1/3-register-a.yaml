@@ -1,0 +1,25 @@
+appId: ${HCM_APP_ID}
+name: NB1 part 3 - register A at the search point
+tags:
+  - proximity
+---
+# PROXIMITY-CASES.md P-02: after the community's download (part 1), register
+# a new household QAID-NB1-A where the phone stands, then come back to Search
+# Beneficiary. Run with the emulator's GPS on the search point (adb emu geo
+# fix 7.4388 10.5222). Starts on Search Beneficiary; reopens it first so the
+# screen starts clean. IRREVERSIBLE: creates a household and uses an ID.
+- runFlow: reopen-search.yaml
+- runFlow:
+    file: ../../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: QAID-NB1-A
+      KEY: NB1_ID_A
+- takeScreenshot: artifacts/nb1-a-overview
+- back
+- extendedWaitUntil:
+    visible: "Register (New )?Beneficiary"
+    timeout: 15000
+    label: "Back on Search Beneficiary"
+# E-11: what the search screen shows on return - Near by on or off, and
+# whether A is listed.
+- takeScreenshot: artifacts/nb1-back-on-search

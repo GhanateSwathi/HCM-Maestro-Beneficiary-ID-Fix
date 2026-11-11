@@ -1,0 +1,15 @@
+appId: ${HCM_APP_ID}
+name: NB6 part 0 - sync everything, then log out
+tags:
+  - proximity
+---
+# Before the app's storage is cleared (QA's clean-start case, 2026-11-06):
+# nothing may be left unsynced, and the server session must end - Kaduna UAT
+# refuses a second session (README question 10), so a session left open by
+# a wiped app could block the next login.
+- runFlow:
+    when:
+      notVisible: "Registration & Delivery"
+    file: ../../../subflows/common/go-home.yaml
+- runFlow: ../../../subflows/common/sync-data.yaml
+- runFlow: ../../../subflows/common/logout.yaml

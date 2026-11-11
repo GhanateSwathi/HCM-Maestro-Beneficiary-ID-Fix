@@ -1,0 +1,15 @@
+appId: ${HCM_APP_ID}
+name: NB3 - a consent-No household where the phone is
+tags:
+  - proximity
+---
+# PROXIMITY-CASES.md B1 root cause. At an empty spot, a household saved
+# with consent No (no members) BEFORE five normal ones. If such a household
+# takes a slot in Near by's first page (5) and is then dropped from display,
+# the page comes back short and the list ends early - the fifth household
+# never shows. Ends on Search Beneficiary.
+- runFlow: ../NB1/reopen-search.yaml
+- runFlow:
+    file: ../../../subflows/registration/consent-no.yaml
+    env:
+      NAME: ${NAME}

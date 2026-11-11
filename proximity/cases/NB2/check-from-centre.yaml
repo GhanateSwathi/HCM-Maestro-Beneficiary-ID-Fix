@@ -1,0 +1,80 @@
+appId: ${HCM_APP_ID}
+name: NB2 - from the centre, which NB2 households are near by; then sync
+tags:
+  - proximity
+---
+# After register-and-check.yaml ran at C, 1 km, 4.9 km, 5.1 km and 10 km
+# north of C. Run with the GPS back on C. Near by on + "QAID-NB2" typed: at
+# most 5 results, one page, so the paging bug (PROXIMITY-CASES.md B1-B3)
+# cannot hide any. Expected: C, 1KM, 4K9 listed; 5K1 and 10KM not.
+# Then Sync Data: the upload's log holds each household's saved lat/long.
+- runFlow: ../NB1/reopen-search.yaml
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    point: "8%,29%"
+    label: "Switch Near by households on"
+- tapOn:
+    text: "Name of the individual"
+    label: "Focus the search field"
+- inputText: "QAID-NB2"
+- runFlow: ../../../subflows/common/close-keyboard.yaml
+- extendedWaitUntil:
+    visible: "QAID-NB2-.* Test"
+    timeout: 20000
+    optional: true
+    label: "Results show"
+- takeScreenshot: artifacts/nb2-from-centre
+- evalScript: ${output.seen = {}}
+- runFlow:
+    when:
+      visible: "QAID-NB2-C Test"
+    commands:
+      - evalScript: ${output.seen['C'] = true}
+- runFlow:
+    when:
+      visible: "QAID-NB2-1KM Test"
+    commands:
+      - evalScript: ${output.seen['1KM'] = true}
+- swipe:
+    start: "97%,80%"
+    end: "97%,30%"
+    duration: 500
+- waitForAnimationToEnd:
+    timeout: 5000
+- runFlow:
+    when:
+      visible: "QAID-NB2-4K9 Test"
+    commands:
+      - evalScript: ${output.seen['4K9'] = true}
+- runFlow:
+    when:
+      visible: "QAID-NB2-5K1 Test"
+    commands:
+      - evalScript: ${output.seen['5K1'] = true}
+- swipe:
+    start: "97%,80%"
+    end: "97%,30%"
+    duration: 500
+- waitForAnimationToEnd:
+    timeout: 5000
+- runFlow:
+    when:
+      visible: "QAID-NB2-10KM Test"
+    commands:
+      - evalScript: ${output.seen['10KM'] = true}
+- runFlow:
+    when:
+      visible: "QAID-NB2-4K9 Test"
+    commands:
+      - evalScript: ${output.seen['4K9'] = true}
+- runFlow:
+    when:
+      visible: "QAID-NB2-5K1 Test"
+    commands:
+      - evalScript: ${output.seen['5K1'] = true}
+- takeScreenshot: artifacts/nb2-from-centre-scrolled
+- evalScript: "${['C','1KM','4K9'].forEach(function (k) { console.log((output.seen[k] ? 'CHECK|PASS|' : 'CHECK|FAIL|') + 'From C: QAID-NB2-' + k + (output.seen[k] ? ' listed' : ' NOT listed') + ' (expected listed, within 5 km)') })}"
+- evalScript: "${['5K1','10KM'].forEach(function (k) { console.log((output.seen[k] ? 'CHECK|FAIL|' : 'CHECK|PASS|') + 'From C: QAID-NB2-' + k + (output.seen[k] ? ' listed' : ' not listed') + ' (expected not listed, beyond 5 km)') })}"
+- runFlow: ../../../subflows/common/go-home.yaml
+- runFlow: ../../../subflows/common/sync-data.yaml

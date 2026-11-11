@@ -1,0 +1,40 @@
+appId: ${HCM_APP_ID}
+name: NB1 - leave Search Beneficiary and open it again
+tags:
+  - proximity
+---
+# The Near by search centre is the first GPS fix after the search screen
+# opens (PROXIMITY-CASES.md F5), so after moving the emulator's GPS
+# (adb emu geo fix) the screen has to be opened again. Ends on a fresh
+# Search Beneficiary with Near by households off.
+- extendedWaitUntil:
+    visible: "Near by households|Select Your Village|Registration & Delivery"
+    timeout: 30000
+    label: "Search Beneficiary, Select Your Village or home"
+- runFlow:
+    when:
+      visible: "Near by households"
+    commands:
+      - tapOn:
+          text: "Back"
+          label: "Back"
+- extendedWaitUntil:
+    visible: "Select Your Village|Registration & Delivery"
+    timeout: 15000
+    label: "Left the search screen"
+- runFlow:
+    when:
+      visible: "Select Your Village"
+    commands:
+      - tapOn:
+          text: ${REGISTRATION_VILLAGE}
+          below: "Select Your Village"
+          label: "Open REGISTRATION_VILLAGE"
+- runFlow:
+    when:
+      visible: "Registration & Delivery"
+    file: ../../../subflows/registration/open-search.yaml
+- extendedWaitUntil:
+    visible: "Near by households"
+    timeout: 30000
+    label: "Search Beneficiary is open"

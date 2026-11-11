@@ -9,7 +9,7 @@ QA check, one record per case: do an action in the app as a CDD, then read that 
 - **Open dev questions:** referral reason always SICK; delivery_comment column empty; checklist keys / date formats differ on the ineligible path; consent-No household stores member_count 1; redose stored with status VISITED; row_version / audit_modified_time unchanged on edit; head's edit form titled "Child's Details".
 - **Sync NOT done (2026-11-11 12:36):** `flows/sync.yaml` hit "Session Expired"; the flow logged out (local data kept, as in D6) and signed in again, but Kaduna UAT answered **USER_ALREADY_LOGGED_IN** - `dis-qa-oct29` is signed in on another device. `emulator-5554` sits on the Login screen with that dialog; the Case 5-10 records are still on it, unsynced. Once the other session is ended: sign in, check the records in the DB viewer, then Sync Data (`flows/sync.yaml`). `HCM_DB_Audit` is stopped.
 - **Watch out:** Claude Code's Maestro MCP (`maestro mcp` java process) restarts on its own and holds the device; stop it before CLI runs. A run can stall while the PC sleeps.
-- **Not committed:** nothing in `db-audit/` has been committed yet.
+- **In git:** branch `db-audit-cdd` (pushed 2026-11-11), together with the Near by suite (`proximity/`); not merged into `main` yet. `db-audit/config/` stays local.
 
 ## How the local DB is read
 

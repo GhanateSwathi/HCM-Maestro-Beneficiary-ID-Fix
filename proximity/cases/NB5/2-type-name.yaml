@@ -1,0 +1,32 @@
+appId: ${HCM_APP_ID}
+name: NB5 part 2 - same screen, Near by still on, type the name
+tags:
+  - proximity
+---
+# After part 1 and the list recording: scroll back to the top, type NAME with
+# Near by still on, and check the new household (NAME LAST_NAME) shows.
+- repeat:
+    times: 8
+    commands:
+      - swipe:
+          start: "97%,30%"
+          end: "97%,85%"
+          duration: 300
+- tapOn:
+    text: "Name of the individual"
+    label: "Focus the search field"
+- inputText: ${NAME}
+- runFlow: ../../../subflows/common/close-keyboard.yaml
+- extendedWaitUntil:
+    visible: ${NAME + ' ' + LAST_NAME}
+    timeout: 20000
+    optional: true
+    label: "NAME LAST_NAME shows"
+- evalScript: ${output.named = false}
+- runFlow:
+    when:
+      visible: ${NAME + ' ' + LAST_NAME}
+    commands:
+      - evalScript: ${output.named = true}
+- evalScript: "${console.log((output.named ? 'CHECK|PASS|' : 'CHECK|FAIL|') + NAME + ' ' + LAST_NAME + ' found with Near by on and the name typed')}"
+- takeScreenshot: artifacts/nb5-nearby-name

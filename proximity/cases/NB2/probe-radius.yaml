@@ -1,0 +1,32 @@
+appId: ${HCM_APP_ID}
+name: NB2 - is TARGET near by from here
+tags:
+  - proximity
+---
+# Measures the radius the app really uses: the runner puts the GPS at a
+# known distance from TARGET's saved point, this opens a fresh search
+# (new centre), switches Near by on, types TARGET and logs whether it shows.
+- runFlow: ../NB1/reopen-search.yaml
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    point: "8%,29%"
+    label: "Switch Near by households on"
+- tapOn:
+    text: "Name of the individual"
+    label: "Focus the search field"
+- inputText: ${TARGET}
+- runFlow: ../../../subflows/common/close-keyboard.yaml
+- extendedWaitUntil:
+    visible: ${TARGET + ' .*'}
+    timeout: 15000
+    optional: true
+    label: "TARGET shows"
+- evalScript: ${output.hit = false}
+- runFlow:
+    when:
+      visible: ${TARGET + ' .*'}
+    commands:
+      - evalScript: ${output.hit = true}
+- evalScript: "${console.log('PROBE|' + DIST + '|' + (output.hit ? 'FOUND' : 'not found'))}"
+- takeScreenshot: artifacts/probe-${DIST}

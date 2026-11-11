@@ -1,0 +1,28 @@
+appId: ${HCM_APP_ID}
+name: NB1 part 2 - home, beneficiary IDs, open Search Beneficiary
+tags:
+  - proximity
+---
+# From "Data downloaded successfully" (part 1): Go To Home Screen, download
+# beneficiary IDs (a fresh install has none, and registering needs one),
+# then open Search Beneficiary for REGISTRATION_VILLAGE. Ends on the search
+# screen with Near by households still off.
+- runFlow:
+    when:
+      visible: "Go To Home Screen"
+    commands:
+      - tapOn:
+          text: "Go To Home Screen"
+          label: "Go To Home Screen"
+- extendedWaitUntil:
+    visible: "Registration & Delivery"
+    timeout: 60000
+    label: "Home"
+- runFlow:
+    file: ../../../subflows/id/download-ids.yaml
+    env:
+      TRY: "yes"
+- runFlow: ../../../subflows/id/read-available.yaml
+- takeScreenshot: artifacts/nb1-home-ids
+- runFlow: ../../../subflows/registration/open-search.yaml
+- takeScreenshot: artifacts/nb1-search-open

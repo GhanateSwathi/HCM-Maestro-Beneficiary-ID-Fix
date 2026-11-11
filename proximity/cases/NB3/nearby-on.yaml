@@ -1,0 +1,28 @@
+appId: ${HCM_APP_ID}
+name: NB3 - fresh Search, Near by on (optionally a name typed)
+tags:
+  - proximity
+---
+# Leaves the result list on screen for proximity/scripts/nearby-list.py to record.
+# TYPE (optional): text to type in the name field after Near by is on.
+- runFlow: ../NB1/reopen-search.yaml
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    point: "8%,29%"
+    label: "Switch Near by households on"
+- runFlow:
+    when:
+      true: ${typeof TYPE != 'undefined' && TYPE != ''}
+    commands:
+      - tapOn:
+          text: "Name of the individual"
+          label: "Focus the search field"
+      - inputText: ${TYPE}
+      - runFlow: ../../../subflows/common/close-keyboard.yaml
+- extendedWaitUntil:
+    visible: "Open"
+    timeout: 20000
+    optional: true
+    label: "Results show"
+- takeScreenshot: artifacts/nb3-nearby-on

@@ -1,0 +1,62 @@
+appId: ${HCM_APP_ID}
+name: NB1 part 1 - pick the boundary and download the community's data
+tags:
+  - proximity
+---
+# PROXIMITY-CASES.md P-02 / E-01: the state QA reported - the community's
+# households downloaded (Rigan Ori, 153 on 2026-11-06) before a new household
+# is registered. Starts on the boundary form (signed in, after
+# flows/setup/cdd-sign-in.yaml). Unlike subflows/common/home.yaml, which
+# skips the download, this taps Download on "Data found!".
+- extendedWaitUntil:
+    visible: "Health Facility \\*"
+    timeout: 60000
+    label: "The boundary form"
+- tapOn:
+    below: "Health Facility \\*"
+    above: "Community \\*"
+    label: "Open Health Facility"
+- tapOn:
+    text: ${HEALTH_FACILITY}
+    label: "Pick HEALTH_FACILITY"
+- tapOn:
+    below: "Community \\*"
+    above: "Submit"
+    index: 0
+    label: "Open Community"
+- tapOn:
+    text: ${REGISTRATION_VILLAGE}
+    label: "Tick REGISTRATION_VILLAGE"
+- tapOn:
+    below: "Community \\*"
+    above: ${REGISTRATION_VILLAGE}
+    index: 0
+    label: "Close the Community list"
+- tapOn:
+    text: "Submit"
+    label: "Submit the boundary"
+- extendedWaitUntil:
+    visible: "No data found!|Pending Records|Data found!|Failed to check data.*|Registration & Delivery"
+    timeout: 60000
+    label: "The boundary check answers"
+- takeScreenshot: artifacts/nb1-boundary-answer
+- runFlow:
+    when:
+      visible: "Data found!"
+    commands:
+      - tapOn:
+          text: "Download"
+          below: "Data found!"
+          label: "Download the community's data"
+      # 153 households on a software-rendered emulator: allow 10 minutes.
+      - extendedWaitUntil:
+          notVisible: "Data found!"
+          timeout: 30000
+          optional: true
+          label: "The dialog moves on"
+      - takeScreenshot: artifacts/nb1-download-progress
+      - extendedWaitUntil:
+          visible: "Registration & Delivery|.*[Dd]ownload(ed)? [Ss]uccess.*|.*[Cc]omplete.*|.*[Ff]ail.*"
+          timeout: 600000
+          label: "The download ends"
+      - takeScreenshot: artifacts/nb1-download-end

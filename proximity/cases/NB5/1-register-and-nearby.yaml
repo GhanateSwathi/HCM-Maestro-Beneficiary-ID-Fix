@@ -1,0 +1,46 @@
+appId: ${HCM_APP_ID}
+name: NB5 - QA's manual case - register Swathi Ghanate, back to Search, Near by on
+tags:
+  - proximity
+---
+# QA's manual steps (2026-11-06), as a tester does them:
+#   Rigan Ori downloaded (153 households, part 1 of NB1) -> Search
+#   Beneficiary -> register "Swathi Ghanate" -> come back to the search
+#   screen -> switch on Near by households.
+# Expected: Swathi Ghanate listed. QA saw it missing.
+# NAME is the first name (typed as the search text), LAST_NAME the family
+# name (-Set LAST_NAME=Ghanate). Starts on home or Search Beneficiary.
+# IRREVERSIBLE: creates a household and uses an ID.
+- runFlow:
+    when:
+      notVisible: "Registration & Delivery"
+    file: ../../../subflows/common/go-home.yaml
+- runFlow: ../../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: ${NAME}
+      KEY: NB5_ID
+- takeScreenshot: artifacts/nb5-overview
+# Come back to the search screen the way a tester does: Back.
+- back
+- extendedWaitUntil:
+    visible: "Register (New )?Beneficiary"
+    timeout: 15000
+    label: "Back on Search Beneficiary"
+- takeScreenshot: artifacts/nb5-back-on-search
+- extendedWaitUntil:
+    visible: "Near by households"
+    timeout: 15000
+    label: "Near by households is shown"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    point: "8%,29%"
+    label: "Switch Near by households on"
+- extendedWaitUntil:
+    visible: "Open"
+    timeout: 20000
+    optional: true
+    label: "Near by results show"
+- takeScreenshot: artifacts/nb5-nearby-on

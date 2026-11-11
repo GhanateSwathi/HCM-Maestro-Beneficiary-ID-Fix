@@ -9,6 +9,8 @@ Maestro (Android) automation for the **Beneficiary ID Fix – QA Test Plan** (20
 | User | One CDD (`HCM_CDD_USER_ID` in `.env`) |
 | Cases | [TEST-CASES.md](TEST-CASES.md) - the 19 Phase A cases run, and X9b, with result, comments and the ID ledger |
 
+Search by proximity (Near by households) is a separate suite, with its own cases, runner and handoff: [proximity/README.md](proximity/README.md).
+
 ## Where we left off (2026-11-04)
 
 **All three cases that failed on 2.2.120 PASS on Kebbi 2.2.122: X9-122, D5-122 (2026-11-03) and X9b-122 (2026-11-04 10:38).** X9, X9b and D5 run again on Kebbi build 2.2.122 (`kebbi-azm-2.2.122-signed-android-id.apk`) - separate cases `X9-122`, `X9b-122`, `D5-122`, so the 2.2.120 FAILs below stay as evidence. Same two emulators, same flows. The build is a different app on a different server: `org.egov.azm.kebbi`, `kebbi-azm-central-hcm.digit.org` (tenant `kb`), CDD `ke-azm-cdd-01`, boundary ke Garadi Health Post / Tungar Yari. `.env` points at it now (both APKs kept: `HCM_APK_KADUNA`, `HCM_APK_KEBBI`).
@@ -95,6 +97,7 @@ All test households are in Rigan Ori under `dis-qa-oct29`, named `QAID-<case>-<l
 7. **Download Beneficiary IDs greyed out** (2026-11-03 12:30): on `emulator-5554` at 598 of 600, about 20 minutes after a Re-Fetch IDs, the button was not clickable; at 599-600 earlier the same day it answered "Limit exceeded" → Re-Fetch IDs. When is the download disabled, and for how long? (On Kebbi 2.2.122 it is greyed out at 600 of 600, 2026-11-03 19:17.)
 8. **Download does nothing on a rejected session** (Kebbi 2.2.122, 2026-11-03 18:45): `ke-azm-cdd-01`'s token was rejected (401 on every request) and Download Beneficiary IDs did nothing - no dialog, no error, no "Session Expired"; the device stayed at 0 of 0. A field user would not know why. Should the app tell them to sign in again?
 9. **Both sessions rejected when a second device signed in** (Kebbi 2.2.122, 2026-11-03): `emulator-5554` signed in at about 18:33; from 18:44:20 - just after `emulator-5556` first signed in as the same CDD - both devices got 401. After each signed in again (18:58, 19:09) both worked side by side, so it is not one session per user; and in X9b-122 (2026-11-04 10:41-10:42) device 2's sign-in left device 1's session working. Does the server end a user's sessions when a new device first signs in? (Someone else using the shared CDD then cannot be ruled out.)
+10. **Kaduna UAT refuses a second session** (2026-11-06 13:09, `org.egov.azm.gombe` 2.2.122 on `emulator-5554`, `dis-qa-oct29` also signed in on QA's phone): the app's `/user/v1/_validate` answered `"isDuplicateLogin": false`, then `/user/oauth/token` refused with `invalid_request: ACTIVE_SESSION_EXISTS: This user is already logged in on another device.`, shown as the raw key **USER_ALREADY_LOGGED_IN**. Single login is not meant to be in the Kaduna build. Every build since 2.2.120 makes the `_validate` call, and until 2026-11-04 the server always let a second device in: X9 and X9b, 2026-11-03, two emulators signed in as `dis-qa-oct29` a minute apart. So the server side changed, not the APK. The two checks also disagree (validate says no duplicate, the token call says there is one), and the app sends `"deviceToken": null`. Log: `artifacts/proximity/runs/20261106-NB1-sign-in`.
 
 ## Setup
 

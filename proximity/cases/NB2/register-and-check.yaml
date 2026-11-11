@@ -1,0 +1,91 @@
+appId: ${HCM_APP_ID}
+name: NB2 - register NAME where the phone is, then Near by at once
+tags:
+  - proximity
+---
+# PROXIMITY-CASES.md "moving" check (QA, 2026-11-06): the runner moves the
+# emulator's GPS (adb emu geo fix) before this part, without restarting the
+# app. Registers NAME there, comes back to a fresh Search Beneficiary at the
+# same spot, switches Near by households on and checks NAME:
+#   1. in the plain Near by list (no name typed) - first screen and 3 swipes
+#   2. with its name typed, Near by still on.
+# The location page shows only the fix's accuracy, not the lat/long; the
+# saved lat/long is read from the sync log afterwards (NB2 check part).
+- runFlow: ../NB1/reopen-search.yaml
+- runFlow:
+    file: ../../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: ${NAME}
+      KEY: ${KEY}
+- takeScreenshot: artifacts/overview-${NAME}
+- back
+- extendedWaitUntil:
+    visible: "Register (New )?Beneficiary"
+    timeout: 15000
+    label: "Back on Search Beneficiary"
+# A fresh screen, so the Near by centre is this spot (the first fix after
+# the screen opens).
+- runFlow: ../NB1/reopen-search.yaml
+- extendedWaitUntil:
+    visible: "Near by households"
+    timeout: 30000
+    label: "Near by households is shown"
+# The switch is disabled until there is a fix; it sits left of its label.
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    point: "8%,29%"
+    label: "Switch Near by households on"
+- extendedWaitUntil:
+    visible: "Open"
+    timeout: 20000
+    optional: true
+    label: "Near by results show"
+- takeScreenshot: artifacts/nearby-plain-${NAME}
+- evalScript: ${output.plain = false}
+- repeat:
+    times: 4
+    commands:
+      - runFlow:
+          when:
+            visible: ${NAME + ' .*'}
+          commands:
+            - evalScript: ${output.plain = true}
+      - runFlow:
+          when:
+            true: ${!output.plain}
+          commands:
+            - swipe:
+                start: "97%,80%"
+                end: "97%,30%"
+                duration: 500
+            - waitForAnimationToEnd:
+                timeout: 6000
+- evalScript: "${console.log((output.plain ? 'CHECK|PASS|' : 'CHECK|FAIL|') + NAME + ' in the plain Near by list right after registering (first screen + 3 swipes)')}"
+- takeScreenshot: artifacts/nearby-plain-end-${NAME}
+# Back to the top, then the name with Near by still on.
+- repeat:
+    times: 6
+    commands:
+      - swipe:
+          start: "97%,30%"
+          end: "97%,85%"
+          duration: 300
+- tapOn:
+    text: "Name of the individual"
+    label: "Focus the search field"
+- inputText: ${NAME}
+- runFlow: ../../../subflows/common/close-keyboard.yaml
+- extendedWaitUntil:
+    visible: ${NAME + ' .*'}
+    timeout: 20000
+    optional: true
+    label: "NAME found with Near by on"
+- evalScript: ${output.named = false}
+- runFlow:
+    when:
+      visible: ${NAME + ' .*'}
+    commands:
+      - evalScript: ${output.named = true}
+- evalScript: "${console.log((output.named ? 'CHECK|PASS|' : 'CHECK|FAIL|') + NAME + ' found by name with Near by on, right after registering')}"
+- takeScreenshot: artifacts/nearby-named-${NAME}

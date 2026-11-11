@@ -125,7 +125,7 @@ OBS = [
     ("1", "HOUSEHOLD", "caregiverConsent", "consentToParticipate", "Yes",
      "household", "additional_fields.caregiverConsent", "TRUE", CAP, ""),
     ("1", "HOUSEHOLD", "caregiverConsent", "negativeConsentReason", "(not shown: consent Yes)",
-     "household", "additional_fields.negativeConsentReason", "-", NA, "Shown only for consent No - see the Not tested row"),
+     "household", "additional_fields.negativeConsentReason", "-", NA, "Shown only for consent No - tested in Case 5"),
     ("1", "HOUSEHOLD", "householdDetails", "dateOfRegistration", "10 Nov 2026 (read-only, today)",
      "project_beneficiary", "date_of_registration", "1794301374626 = 10 Nov 2026 14:32 IST", CAP, "Epoch milliseconds"),
     ("1", "HOUSEHOLD", "householdDetails", "childrenCount", "(hidden)", "-", "-", "-", NA, "Hidden on this form"),
@@ -494,7 +494,7 @@ def main():
 
     headers = ["Case", "Module", "Flow", "Screen", "Field ID", "Field label", "Field type", "Mandatory", "Conditional",
                "Parent field / condition", "Value entered", "Table", "Column / key", "Value stored in DB", "Status", "Notes"]
-    widths = [6, 14, 18, 26, 20, 40, 16, 11, 12, 34, 28, 22, 36, 38, 15, 44]
+    widths = [6, 16, 18, 26, 20, 40, 16, 11, 12, 34, 28, 22, 36, 38, 15, 44]
 
     font = Font(name="Arial", size=10)
     bold = Font(name="Arial", size=10, bold=True)
@@ -602,10 +602,12 @@ def main():
 
     # ---- Field sheets ---------------------------------------------------------------------
     table_sheet(wb.create_sheet("All fields"), rows)
-    table_sheet(wb.create_sheet("Captured"), [r for r in rows if r[14] == CAP])
-    rank = {NOT: 0, NT: 1, AS: 2, NA: 3}
-    table_sheet(wb.create_sheet("Not captured"),
-                sorted([r for r in rows if r[14] != CAP], key=lambda r: (rank[r[14]], r[0], r[16])))
+    # One tab per status, so "Not captured" holds only the real gaps. Not
+    # tested appears only while a planned case is still to run.
+    for s in STATUSES:
+        part = [r for r in rows if r[14] == s]
+        if part or s in (CAP, NOT):
+            table_sheet(wb.create_sheet(s), part)
 
     # ---- Findings -----------------------------------------------------------------------
     wf = wb.create_sheet("Findings")

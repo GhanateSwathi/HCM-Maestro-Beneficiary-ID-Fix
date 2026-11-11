@@ -1,0 +1,19 @@
+appId: ${HCM_APP_ID}
+name: DB audit - add one child (CHILD) to household NAME
+tags:
+  - db-audit
+---
+# From anywhere: home (an unsaved form is left), open household NAME, then
+# Add Members -> CHILD LAST_NAME (MEMBER_AGE_YEARS, MEMBER_GENDER,
+# MEMBER_HEIGHT_CM) through the Beneficiary ID suite's subflow. Logs the
+# child's ID (LEDGER) and ends on Household Overview. Written 2026-11-11 when
+# the Case 6 registration stalled overnight (PC asleep) after the head was
+# saved. Creates a member and uses an ID - IRREVERSIBLE.
+- runFlow: open-household.yaml
+- runFlow:
+    file: ../../subflows/registration/add-member-and-read.yaml
+    env:
+      NAME: ${CHILD}
+      HOUSEHOLD: ${NAME}
+      KEY: CHILD_ID
+- takeScreenshot: artifacts/household-with-child

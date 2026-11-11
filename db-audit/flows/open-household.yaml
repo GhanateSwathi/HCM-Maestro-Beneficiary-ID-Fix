@@ -1,0 +1,16 @@
+appId: ${HCM_APP_ID}
+name: DB audit - open household NAME on Household Overview
+tags:
+  - db-audit
+---
+# From anywhere: the app in front (a restarted app asks for the boundary
+# again - answered by the Beneficiary ID suite's home.yaml), home, then
+# Registration & Delivery -> the village -> search NAME -> Open. Ends on its
+# Household Overview. Reads only.
+- runFlow: home.yaml
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/open-household.yaml
+    env:
+      HOUSEHOLD: ${NAME}
+- takeScreenshot: artifacts/overview-${NAME}

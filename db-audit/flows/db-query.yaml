@@ -1,0 +1,136 @@
+appId: ${HCM_APP_ID}
+name: DB query - run SQL in the app's DB viewer and log the result
+tags:
+  - db-audit
+---
+# Runs SQL against the app's own local database and logs the answer, for
+# the field-by-field storage checks (db-audit/README.md). Read-only: the
+# viewer runs SELECTs; never pass anything else.
+#
+# The Kaduna AZM -db build (org.egov.azm.gombe 2.2.122) has a "DB" card on
+# the CDD's home screen: the Drift DB viewer. A table opens as a grid
+# ("household (154-20)": rows, page size) with a filter button; the filter
+# screen shows the query ("SELECT * FROM household LIMIT 20"), and its
+# pencil opens "Edit Query", a free SQL field. Saving runs it and the grid
+# shows the result - each cell's value is its accessibility text (read off
+# the app 2026-11-10).
+#
+# SQL must return ONE row with ONE column named j (e.g. SELECT json_object(
+# ...) AS j ...): the cell's text is copied and logged as DBROW|LABEL|<text>
+# for db-audit/scripts/db_check.py. No row found logs DBROW|LABEL|NONE.
+- runFlow: ../../subflows/common/go-home.yaml
+- tapOn:
+    text: "DB"
+    label: "Open the DB viewer"
+- extendedWaitUntil:
+    visible: "Tables"
+    timeout: 15000
+    label: "The table list"
+- tapOn:
+    text: "household"
+    label: "Open any table (household) to reach its query editor"
+- extendedWaitUntil:
+    visible: "household \\(.*\\)"
+    timeout: 15000
+    label: "The household grid"
+# The filter button is the grid header's only right-hand control and has no
+# label - a coordinate is the only handle.
+- tapOn:
+    point: "95%,13%"
+    label: "Filter"
+- extendedWaitUntil:
+    visible: "household Filter"
+    timeout: 10000
+    label: "The filter screen"
+- runFlow:
+    when:
+      visible: "Clear custom sql statement"
+    commands:
+      - tapOn: "Clear custom sql statement"
+# The pencil (edit the SQL) sits at the right end of the query line - no label.
+- tapOn:
+    point: "98%,17%"
+    label: "Edit the query"
+- extendedWaitUntil:
+    visible: "Edit Query"
+    timeout: 10000
+    label: "Edit Query"
+# After "Clear custom sql statement" the field holds the short default query
+# ("SELECT * FROM household LIMIT 20"), all of it visible, so a tap at the
+# field's right end puts the cursor after it, and the erase takes it all
+# (eraseText deletes only before the cursor; Dpad Right presses took ~1 s
+# each, 2026-11-10).
+- tapOn:
+    point: "93%,20%"
+    label: "Focus the SQL field at its end"
+- eraseText: 45
+# Typed in pieces of up to 90 characters (SQL_1 ... SQL_8, from
+# db_query.py): inputText types about 2.3 characters a second into this
+# field, and one call is cut off after 120 s - a 280-character SELECT failed
+# with DEADLINE_EXCEEDED (2026-11-10 14:21). pasteText types too.
+- inputText: ${SQL_1}
+- runFlow:
+    when:
+      true: ${typeof SQL_2 != 'undefined' && SQL_2 != '' && SQL_2 != '-'}
+    commands:
+      - inputText: ${SQL_2}
+- runFlow:
+    when:
+      true: ${typeof SQL_3 != 'undefined' && SQL_3 != '' && SQL_3 != '-'}
+    commands:
+      - inputText: ${SQL_3}
+- runFlow:
+    when:
+      true: ${typeof SQL_4 != 'undefined' && SQL_4 != '' && SQL_4 != '-'}
+    commands:
+      - inputText: ${SQL_4}
+- runFlow:
+    when:
+      true: ${typeof SQL_5 != 'undefined' && SQL_5 != '' && SQL_5 != '-'}
+    commands:
+      - inputText: ${SQL_5}
+- runFlow:
+    when:
+      true: ${typeof SQL_6 != 'undefined' && SQL_6 != '' && SQL_6 != '-'}
+    commands:
+      - inputText: ${SQL_6}
+- runFlow:
+    when:
+      true: ${typeof SQL_7 != 'undefined' && SQL_7 != '' && SQL_7 != '-'}
+    commands:
+      - inputText: ${SQL_7}
+- runFlow:
+    when:
+      true: ${typeof SQL_8 != 'undefined' && SQL_8 != '' && SQL_8 != '-'}
+    commands:
+      - inputText: ${SQL_8}
+# Save (the green disk, top right; no label): back to the filter screen,
+# whose own save runs the query.
+- tapOn:
+    point: "95%,13%"
+    label: "Save the SQL"
+- extendedWaitUntil:
+    visible: "household Filter"
+    timeout: 10000
+    label: "Back on the filter screen"
+- tapOn:
+    point: "95%,13%"
+    label: "Run the query"
+- extendedWaitUntil:
+    visible: "j"
+    timeout: 15000
+    optional: true
+    label: "The result grid with its column j"
+- takeScreenshot: artifacts/db-${LABEL}
+- setClipboard: "NONE"
+- runFlow:
+    when:
+      visible:
+        text: "(?s)\\{.*"
+        below: "j"
+    commands:
+      - copyTextFrom:
+          text: "(?s)\\{.*"
+          below: "j"
+          label: "Copy the result"
+- evalScript: "${console.log('DBROW|' + LABEL + '|' + String(maestro.copiedText).replace(/\\n/g, ' '))}"

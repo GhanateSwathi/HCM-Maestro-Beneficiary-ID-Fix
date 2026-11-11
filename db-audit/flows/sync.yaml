@@ -1,0 +1,11 @@
+appId: ${HCM_APP_ID}
+name: DB audit - Sync Data from home
+tags:
+  - db-audit
+---
+# End of a DB-audit session: home, then Sync Data through the Beneficiary ID
+# suite's subflow (signs in again from .env if the session expired). Sends
+# every case's records to Kaduna UAT - IRREVERSIBLE.
+- runFlow: home.yaml
+- runFlow: ../../subflows/common/sync-data.yaml
+- takeScreenshot: artifacts/after-sync

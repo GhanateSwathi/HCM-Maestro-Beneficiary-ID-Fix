@@ -1,0 +1,16 @@
+appId: ${HCM_APP_ID}
+name: DB audit case 5 - new household, caregiver consent No (head NAME)
+tags:
+  - db-audit
+---
+# From home: Registration & Delivery -> the village -> search NAME ->
+# Register New Beneficiary -> location -> Care giver's consent No, with the
+# reason "QA test - consent refused" -> Submit -> "Data recorded
+# successfully". Reuses the Beneficiary ID suite's consent-no subflow.
+# Writes a record - IRREVERSIBLE once synced.
+- runFlow: home.yaml
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/consent-no.yaml
+    env:
+      NAME: ${NAME}

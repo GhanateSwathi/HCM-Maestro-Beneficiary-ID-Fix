@@ -1,0 +1,39 @@
+appId: ${HCM_APP_ID}
+name: DB query 2 of 2 - run the SQL typed in and log the result
+tags:
+  - db-audit
+---
+# Part 2 of a DB check (db-audit/scripts/db_query.py), on Edit Query with the
+# SQL typed in: save it, run it from the filter screen, and log the result
+# as DBROW|LABEL|<text>. The SQL returns ONE column named j (json_object(...)),
+# whose cell text is the value; no row logs DBROW|LABEL|NONE. Read-only.
+# No hideKeyboard (a Back press: with the keyboard already down it would
+# leave Edit Query and drop the SQL); the save icon sits above the keyboard.
+- tapOn:
+    point: "95%,13%"
+    label: "Save the SQL (unlabelled disk, top right)"
+- extendedWaitUntil:
+    visible: "household Filter"
+    timeout: 10000
+    label: "Back on the filter screen"
+- tapOn:
+    point: "95%,13%"
+    label: "Run the query"
+- extendedWaitUntil:
+    visible: "j"
+    timeout: 15000
+    optional: true
+    label: "The result grid with its column j"
+- takeScreenshot: artifacts/db-${LABEL}
+- setClipboard: "NONE"
+- runFlow:
+    when:
+      visible:
+        text: "(?s)\\{.*"
+        below: "j"
+    commands:
+      - copyTextFrom:
+          text: "(?s)\\{.*"
+          below: "j"
+          label: "Copy the result"
+- evalScript: "${console.log('DBROW|' + LABEL + '|' + String(maestro.copiedText).replace(/\\n/g, ' '))}"

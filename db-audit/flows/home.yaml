@@ -1,0 +1,59 @@
+appId: ${HCM_APP_ID}
+name: DB audit - the app in front, on its home screen
+---
+# Every DB-audit flow starts here. The app is brought to the front without
+# a restart; a background sync's "Sync failed" popup is closed; a restarted
+# app's boundary question (Health Facility / Community) is answered by the
+# Beneficiary ID suite's home.yaml (HEALTH_FACILITY, REGISTRATION_VILLAGE).
+#
+# Home is reached through the side menu, not Back: from the DB viewer's SQL
+# editor, Back presses ran past home and out of the app twice (2026-11-10
+# 15:01 and 15:41) - the screens under it take long to redraw. Back stays as
+# the fallback for screens without the menu.
+- launchApp:
+    stopApp: false
+- extendedWaitUntil:
+    visible: "Registration & Delivery|Tables|household.*|Edit Query|Close|Open navigation menu|Health Facility \\*"
+    timeout: 30000
+    label: "The app is in front"
+- runFlow:
+    when:
+      visible: "Sync failed.*|.*No Internet Connection.*"
+    commands:
+      - tapOn: "Close"
+- runFlow:
+    when:
+      visible: "Health Facility \\*"
+    file: ../../subflows/common/home.yaml
+- runFlow:
+    when:
+      visible:
+        id: "android:id/input_method_nav_back"
+    commands:
+      - tapOn:
+          id: "android:id/input_method_nav_back"
+          label: "Close the keyboard"
+- runFlow:
+    when:
+      notVisible: "Registration & Delivery"
+      visible: "Open navigation menu"
+    commands:
+      - tapOn: "Open navigation menu"
+      - extendedWaitUntil:
+          visible: "Home"
+          timeout: 8000
+          optional: true
+          label: "The side menu opens"
+      - runFlow:
+          when:
+            visible: "Home"
+          commands:
+            - tapOn:
+                text: "Home"
+                label: "Home"
+            - extendedWaitUntil:
+                visible: "Registration & Delivery"
+                timeout: 20000
+                optional: true
+                label: "The home screen"
+- runFlow: ../../subflows/common/go-home.yaml

@@ -1,0 +1,28 @@
+appId: ${HCM_APP_ID}
+name: DB audit - register a household (head NAME) with one child (CHILD)
+tags:
+  - db-audit
+---
+# One record per case (db-audit/README.md): from home, a new household -
+# Beneficiary Location, consent Yes, HOUSEHOLD_MEMBERS, the head NAME
+# LAST_NAME (HEAD_AGE_YEARS, HEAD_GENDER) - then Add Members: the child CHILD
+# LAST_NAME (MEMBER_AGE_YEARS, MEMBER_GENDER, MEMBER_HEIGHT_CM). Reuses the
+# Beneficiary ID suite's registration subflows (read off this Kaduna 2.2.122
+# build; Add Members opens "Child's Details" with Next - checked against the
+# live form config, 2026-11-10). Logs both IDs (LEDGER lines) and ends on
+# Household Overview. Creates a household and uses two IDs - IRREVERSIBLE.
+- runFlow: ../../subflows/common/go-home.yaml
+- runFlow: ../../subflows/registration/open-search.yaml
+- runFlow:
+    file: ../../subflows/registration/register-and-read.yaml
+    env:
+      NAME: ${NAME}
+      KEY: HEAD_ID
+- takeScreenshot: artifacts/head-overview
+- runFlow:
+    file: ../../subflows/registration/add-member-and-read.yaml
+    env:
+      NAME: ${CHILD}
+      HOUSEHOLD: ${NAME}
+      KEY: CHILD_ID
+- takeScreenshot: artifacts/household-with-child

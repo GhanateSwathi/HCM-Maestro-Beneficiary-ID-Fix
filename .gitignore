@@ -20,6 +20,14 @@ artifacts/*
 !artifacts/findings/
 !artifacts/findings/*.png
 
+# DB audit: the live Kaduna form config and labels stay local (client data;
+# this repo is public). build_field_sheet.py reads them from db-audit/config/.
+db-audit/config/
+
+# Python, and LibreOffice lock files of an open sheet
+__pycache__/
+.~lock.*#
+
 # OS
 .DS_Store
 Thumbs.db

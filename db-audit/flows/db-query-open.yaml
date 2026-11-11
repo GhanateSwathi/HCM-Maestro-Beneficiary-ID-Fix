@@ -1,0 +1,60 @@
+appId: ${HCM_APP_ID}
+name: DB query 1 of 2 - open the DB viewer's SQL editor, empty
+tags:
+  - db-audit
+---
+# Part 1 of a DB check (db-audit/scripts/db_query.py): home -> DB (the Drift
+# viewer of the Kaduna AZM -db build) -> household -> Filter -> Edit Query,
+# the SQL field emptied and focused. db_query.py then types the SQL with
+# adb (Maestro's inputText types about 2 characters a second and stops after
+# 120 s; adb's is near instant) and runs db-query-run.yaml.
+#
+# Read off the app 2026-11-10: a table opens as a grid ("household
+# (154-20)") with an unlabelled filter button top right; the filter screen
+# shows the query and, at the right end of it, an unlabelled pencil that
+# opens "Edit Query"; "Clear custom sql statement" resets it to "SELECT *
+# FROM household LIMIT 20".
+# The app in front, on home (home.yaml: sync popup, boundary, side menu).
+- runFlow: home.yaml
+- tapOn:
+    text: "DB"
+    label: "Open the DB viewer"
+- extendedWaitUntil:
+    visible: "Tables"
+    timeout: 15000
+    label: "The table list"
+- tapOn:
+    text: "household"
+    label: "Open any table (household) to reach its query editor"
+- extendedWaitUntil:
+    visible: "household \\(.*\\)"
+    timeout: 15000
+    label: "The household grid"
+- tapOn:
+    point: "95%,13%"
+    label: "Filter (unlabelled, top right)"
+- extendedWaitUntil:
+    visible: "household Filter"
+    timeout: 10000
+    label: "The filter screen"
+- runFlow:
+    when:
+      visible: "Clear custom sql statement"
+    commands:
+      - tapOn: "Clear custom sql statement"
+- tapOn:
+    point: "98%,17%"
+    label: "Edit the query (unlabelled pencil)"
+- extendedWaitUntil:
+    visible: "Edit Query"
+    timeout: 10000
+    label: "Edit Query"
+# The default query is short and wholly visible, so a tap at the field's
+# right end puts the cursor after it; eraseText deletes only before it.
+- tapOn:
+    point: "93%,20%"
+    label: "Focus the SQL field at its end"
+- eraseText: 45
+- assertVisible:
+    focused: true
+    label: "The SQL field has focus, ready for adb input"
